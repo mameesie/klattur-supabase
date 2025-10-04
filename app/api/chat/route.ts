@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       13. Wie of wat ben je zonder de gedachten?
       14. En dan gaan we nu naar de omkering. Wat is de omkering van jouw overtuiging
 
-    
+      vraag elke vraag los en wacht het antwoord af
       Herhaal de overtuiging bij het stellen van daarop volgende vragen.
       Probeer bij onduidelijkheden te vragen wat er precies bedoelt wordt.
       `,//vraag elke vraag los en wacht het antwoord af
