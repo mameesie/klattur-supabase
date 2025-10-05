@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
+import Arrow from "@/public/svg/arrow";
 const ChatPage = () => {
   const [input, setInput] = useState("");
   const { messages, sendMessage } = useChat(); // useCHat automatically uses /api/chat as route + uses previous messages in the prompt
@@ -28,7 +29,9 @@ const ChatPage = () => {
   }, [messages]);
   const handleSubmit = (e) => {
     e.preventDefault();
-    sendMessage({ text: input });
+    if (input) {
+      sendMessage({ text: input });
+    }
     setInput("");
   };
 
@@ -36,22 +39,47 @@ const ChatPage = () => {
     <div className="flex flex-col bg-gray-300 w-full items-center min-h-screen ">
       <div className="w-[60%] bg-gray-200 flex-1 pl-[20px] pr-[20px] pt-[10px] ">
         {messages.map((message) => (
-          <div key={`${message.id}-1`} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+          <div
+            key={`${message.id}-1`}
+            className={`flex ${
+              message.role === "user" ? "justify-end" : "justify-start"
+            }`}
+          >
             <div
               key={message.id}
               className=" rounded-xl inline-flex overflow-hidden p-[20px] m-[10px] bg-gray-100 items-center"
             >
-              
               {/* whitespace-pre-wrap */}
               {/*message.role === "user" ? "User: " : "AI: "*/}
-              {message.role === "assistant" ? <div className={`bg-red-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}></div> : <div></div>}
+              {message.role === "assistant" ? (
+                <div
+                  className={`bg-red-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
+                ></div>
+              ) : (
+                <div></div>
+              )}
               {message.parts.map((part, i) => {
                 switch (part.type) {
                   case "text":
-                    return <div className={`${message.role === "user" ?"mr-[15px]" : "ml-[15px]"}`} key={`${message.id}-${i}`}>{part.text}</div>;
+                    return (
+                      <div
+                        className={`${
+                          message.role === "user" ? "mr-[15px]" : "ml-[15px]"
+                        }`}
+                        key={`${message.id}-${i}`}
+                      >
+                        {part.text}
+                      </div>
+                    );
                 }
               })}
-               {message.role === "user" ? <div className={`bg-blue-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}></div> : <div></div>}
+              {message.role === "user" ? (
+                <div
+                  className={`bg-blue-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
+                ></div>
+              ) : (
+                <div></div>
+              )}
             </div>
           </div>
         ))}
@@ -75,8 +103,11 @@ const ChatPage = () => {
               }}
               rows={1}
             />
-            <button className="text-black" onClick={handleSubmit}>
-              Submit
+            <button
+              className="bg-gray-300 w-[40px] h-[40px] rounded-[10px] flex justify-center"
+              onClick={handleSubmit}
+            >
+              <Arrow className="h-[16x] w-[16px]"></Arrow>
             </button>
           </form>
         </div>
