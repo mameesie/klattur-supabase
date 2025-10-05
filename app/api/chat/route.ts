@@ -4,7 +4,6 @@ import type { NextRequest } from "next/server";
 import { createOpenAI } from "@ai-sdk/openai"
 import "dotenv/config";
 
-export const runtime = "edge";
 
 export async function POST(request: NextRequest) {
   try {

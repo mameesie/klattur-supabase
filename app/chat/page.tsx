@@ -9,6 +9,7 @@ const ChatPage = () => {
   const { messages, sendMessage } = useChat(); // useCHat automatically uses /api/chat as route + uses previous messages in the prompt
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
   useEffect(() => {
     // used to not overflow textarea when there is more text
 
@@ -24,15 +25,30 @@ const ChatPage = () => {
     }
   }, [input]);
 
-  useEffect(() => {
+  useEffect(() => { // check if the message has done status so we can setIsStreaming to false
     console.log(messages);
-  }, [messages]);
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (input) {
-      sendMessage({ text: input });
+
+    // Check if the last message is from assistant and still streaming
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      const lastPart = lastMessage.parts[1];
+
+      // Type guard to check if it's a text part with state
+      if (lastPart && "state" in lastPart && lastPart.state === "done") {
+        setIsStreaming(false);
+      }
+    } else {
+      setIsStreaming(false);
     }
-    setInput("");
+  }, [messages]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (input && !isStreaming) {
+      setIsStreaming(true);
+      sendMessage({ text: input });
+      setInput("");
+    }
   };
 
   return (
@@ -104,14 +120,31 @@ const ChatPage = () => {
               rows={1}
             />
             <button
-              className="bg-gray-300 w-[40px] h-[40px] rounded-[10px] flex justify-center"
-              onClick={handleSubmit}
+              className="bg-gray-300 w-[40px] h-[40px] rounded-[10px] flex justify-center items-center"
+              type="submit"
             >
-              <Arrow className="h-[16x] w-[16px]"></Arrow>
+              {isStreaming ? (
+                <div className="w-[15px] h-[15px] bg-white rounded-[5px] animate-grow" />
+              ) : (
+                <Arrow className="h-[16px] w-[16px]" />
+              )}
             </button>
           </form>
         </div>
       </div>
+      <style jsx>{`
+        @keyframes grow {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.2);
+          }
+        }
+        .animate-grow {
+          animation: grow 1.5s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };

@@ -17,7 +17,7 @@ const Arrow = (props:any) => (
       style={{
         fill: "none",
         stroke: "#fff",
-        strokeWidth: "4.17px",
+        strokeWidth: "8.17px",
       }}
     />
     <path
@@ -25,7 +25,7 @@ const Arrow = (props:any) => (
       style={{
         fill: "none",
         stroke: "#fff",
-        strokeWidth: "4.17px",
+        strokeWidth: "8.17px",
         strokeLinejoin: "round",
         strokeMiterlimit: 1.5,
       }}
