@@ -52,8 +52,8 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="flex flex-col bg-gray-300 w-full items-center min-h-screen ">
-      <div className="w-[60%] bg-gray-200 flex-1 pl-[20px] pr-[20px] pt-[10px] ">
+    <div className="flex flex-col bg-gray-300 w-full items-center min-h-full ">
+      <div className="w-[60%] bg-gray-200 flex-1 pl-[20px] pr-[20px] pt-[10px] pb-[10px] ">
         {messages.map((message) => (
           <div
             key={`${message.id}-1`}
