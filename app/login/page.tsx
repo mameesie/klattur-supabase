@@ -38,6 +38,8 @@ function LoginForm() {
         body: JSON.stringify({
           email: data.email,
           password: data.password,
+          name: data.name,
+          token: data.token
         }),
       });
 
@@ -49,7 +51,7 @@ function LoginForm() {
       return res.json();
     },
     onSuccess: (data) => {
-      toast("Succes", { description: data });
+      toast("Succes", { description: data.message });
       if (
         typeof window !== "undefined" &&
         window.turnstile &&
@@ -102,6 +104,7 @@ function LoginForm() {
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
         noValidate
+        ref={formRef}
         className="flex flex-col gap-2 bg-gray-200"
       >
         <input
@@ -144,6 +147,7 @@ function LoginForm() {
           )}
         </button>
       </form>
+      
     </>
   );
 }
