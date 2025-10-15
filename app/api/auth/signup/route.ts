@@ -1,3 +1,4 @@
+
 import { createClient } from "@/supabase/auth/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -12,7 +13,9 @@ export const userSchema = z.object({
     .min(6, { message: "Wachtwoord moet bestaan uit minimaal 6 tekens." }),
   token: z.string().optional(), // token is not jet in formData when validating (not optional on server side!)
   name: z.string().optional(),
+  firstName: z.string().min(1,{ message: "Naam is vereist." })
 });
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,11 +69,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // signIn
+    // check database if email already exist
+
+    // signUp
     const { auth } = await createClient();
-    const { data, error } = await auth.signInWithPassword({
+    const { data, error } = await auth.signUp({
       email: validation.data.email,
-      password: validation.data.password
+      password: validation.data.password,
+      
+      options: {
+      data: {
+      first_name: validation.data.firstName,
+      // or any other custom fields:
+      // display_name: validation.data.name,
+      // first_name: validation.data.firstName,
+    }
+  }
     });
     if (error) {
       console.log("auth error: ",error)
@@ -89,6 +103,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    console.log("error: ", error)
     return NextResponse.json(
         {
           message: "Refresh de pagina en probeer opnieuw.",

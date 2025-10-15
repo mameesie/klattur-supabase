@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState, useTransition } from "react";
-import { userSchema } from "@/app/types/userSchema";
+import {  userSchemaSignUp } from "@/app/types/userSchema";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -9,12 +9,12 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import Script from "next/script";
 import { createClient } from "@/supabase/auth/client";
-import { loginWithGoogle} from "../actions/actions"
-type FormData = z.infer<typeof userSchema>;
+
+type FormData = z.infer<typeof userSchemaSignUp>;
 
 function LoginForm() {
   const router = useRouter();
-  const form = useForm<FormData>({ resolver: zodResolver(userSchema) });
+  const form = useForm<FormData>({ resolver: zodResolver(userSchemaSignUp) });
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
@@ -29,7 +29,7 @@ function LoginForm() {
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/signup", {
         // is this cached?
         // don't need try catch is managed by useMutation
         method: "POST",
@@ -40,7 +40,8 @@ function LoginForm() {
           email: data.email,
           password: data.password,
           name: data.name,
-          token: data.token
+          token: data.token,
+          firstName: data.firstName
         }),
       });
 
@@ -60,8 +61,6 @@ function LoginForm() {
       ) {
         window.turnstile.reset(turnstileRef.current);
       } 
-      
-      window.location.href = "/chat";
       
     },
     onError: (error: Error) => {
@@ -98,19 +97,6 @@ function LoginForm() {
     }
   };
 
-
-
-  const handleGoogleLogin = async () => {
-    const result = await loginWithGoogle()
-    if (result) {
-      console.log(result)
-      
-      if (result.url) {
-    // Redirect to Google OAuth
-    window.location.href = result.url
-  }
-    }
-  }
   return (
     <>
       <Script
@@ -129,6 +115,13 @@ function LoginForm() {
           name="name"
           type="text"
           className="h-0 overflow-hidden"
+        />
+        <input
+          {...form.register("firstName")}
+          id="firstName"
+          name="firstName"
+          type="text"
+          disabled={isPending}
         />
         <input
           {...form.register("email")}
@@ -160,14 +153,11 @@ function LoginForm() {
           {isPending ? (
             <div className="h-[10px] w-[10px] bg-black"></div>
           ) : (
-            "Login"
+            "Aanmelden"
           )}
         </button>
       </form>
-      
-        <button onClick={handleGoogleLogin} className=" w-[40px] h-[40px] bg-amber-500 " type="submit"> 
-        GOOGLE</button>
-     
+
     </>
   );
 }

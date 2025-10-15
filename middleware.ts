@@ -47,27 +47,28 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // Get the user once
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const isAuthroute =
+  // Auth routes - redirect to /chat if logged in
+  const isAuthRoute =
     request.nextUrl.pathname === "/login" ||
-    request.nextUrl.pathname === "/sign-up";
+    request.nextUrl.pathname === "/signup";
 
-  if (isAuthroute) {
-    
-    const {
-      
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      console.log("user is logged iin")
-      return NextResponse.redirect(new URL("/chat", process.env.NEXT_PUBLIC_BASE_URL))
-    }
+  if (isAuthRoute && user) {
+    console.log("user is logged in, redirecting to chat");
+    return NextResponse.redirect(new URL("/chat", request.url));
   }
 
-  // const {
-  //   data: { user },
-  // } = await supabase.auth.getUser();
+  // Protected routes - redirect to /login if not logged in
+  const isProtectedRoute = request.nextUrl.pathname === "/chat";
 
+  if (isProtectedRoute && !user) {
+    console.log("user is not logged in, redirecting to login");
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
   return supabaseResponse;
 }

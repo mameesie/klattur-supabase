@@ -9,9 +9,6 @@ CREATE TABLE public.profiles (
 
 
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- Create conversations table
 CREATE TABLE chats (
     chat_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
