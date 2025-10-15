@@ -69,11 +69,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabase = await createClient();
     // check database if email already exist
+    const { data: emailCheckData, error: emailCheckError } = await supabase.rpc("does_email_exist", {
+        user_email: validation.data.email,
+      });
+      console.log("data: ",emailCheckData)
+      console.log("error: ", emailCheckError)
 
     // signUp
-    const { auth } = await createClient();
-    const { data, error } = await auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: validation.data.email,
       password: validation.data.password,
       
