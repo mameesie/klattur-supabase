@@ -1,8 +1,8 @@
-
 import { createClient } from "@/supabase/auth/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import z from "zod";
+import { th } from "zod/v4/locales";
 
 export const userSchema = z.object({
   email: z
@@ -13,9 +13,8 @@ export const userSchema = z.object({
     .min(6, { message: "Wachtwoord moet bestaan uit minimaal 6 tekens." }),
   token: z.string().optional(), // token is not jet in formData when validating (not optional on server side!)
   name: z.string().optional(),
-  firstName: z.string().min(1,{ message: "Naam is vereist." })
+  firstName: z.string().min(1, { message: "Naam is vereist." }),
 });
-
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,50 +70,72 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
     // check database if email already exist
-    const { data: emailCheckData, error: emailCheckError } = await supabase.rpc("does_email_exist", {
+    const { data: provider, error: emailCheckError } = await supabase.rpc(
+      "does_email_exist",
+      {
         user_email: validation.data.email,
-      });
-      console.log("data: ",emailCheckData)
-      console.log("error: ", emailCheckError)
+      }
+    );
+    console.log("data: ", provider);
+    console.log("error: ", emailCheckError);
 
-    // signUp
-    const { data, error } = await supabase.auth.signUp({
-      email: validation.data.email,
-      password: validation.data.password,
-      
-      options: {
-      data: {
-      first_name: validation.data.firstName,
-      // or any other custom fields:
-      // display_name: validation.data.name,
-      // first_name: validation.data.firstName,
-    }
-  }
-    });
-    if (error) {
-      console.log("auth error: ",error)
+    if (emailCheckError) {
+      console.log("email check error: ", emailCheckError);
       return NextResponse.json(
         {
-          message: error.message,
-          error: error,
+          message: emailCheckError.message,
+          error: emailCheckError,
         },
         { status: 401 }
       );
     }
+    if (provider === "google") {
+      return NextResponse.json(
+        { message: "Dit emailadres is al in gebruik via Google." },
+        { status: 400 }
+      );
+    }
+    if (provider === "email") {
+      return NextResponse.json(
+        { message: "Dit emailadres is al in gebruik." },
+        { status: 400 }
+      );
+    } else if (provider === null) {
+      // Email doesn't exist, proceed with signup
+
+      // signUp
+      const { data, error } = await supabase.auth.signUp({
+        email: validation.data.email,
+        password: validation.data.password,
+        options: {
+          data: {
+            first_name: validation.data.firstName,
+            // or any other custom fields:
+          },
+        },
+      });
+      if (error) {
+        console.log("auth error: ", error);
+        throw new Error(error.message);
+      }
+      return NextResponse.json(
+        {
+          message:
+            "Er is een mail verstuurd naar jouw emailadres om je account te activeren.",
+        },
+        { status: 201 }
+      );
+    }
+  } catch (error) {
+    console.log("error: ", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
     return NextResponse.json(
       {
-        message: "Succesvol login",
+        message: errorMessage, // ✅ Now it's a string
+        error: errorMessage,
       },
-      { status: 201 }
+      { status: 401 }
     );
-  } catch (error) {
-    console.log("error: ", error)
-    return NextResponse.json(
-        {
-          message: "Refresh de pagina en probeer opnieuw.",
-          error: error,
-        },
-        { status: 401 }
-      );
   }
 }

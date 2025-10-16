@@ -86,7 +86,7 @@ BEGIN
   
   RETURN user_provider; -- Returns provider or NULL if email doesn't exist
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
 
