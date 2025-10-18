@@ -1,10 +1,9 @@
 "use client";
 import React, { useEffect, useRef, useState, useTransition } from "react";
-import {  userSchemaSignUp } from "@/app/types/userSchema";
+import { userSchemaSignUp } from "@/app/types/userSchema";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import Script from "next/script";
@@ -13,19 +12,15 @@ import { createClient } from "@/supabase/auth/client";
 type FormData = z.infer<typeof userSchemaSignUp>;
 
 function LoginForm() {
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [validation, setValidation] = useState(false);
   const form = useForm<FormData>({ resolver: zodResolver(userSchemaSignUp) });
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (form.formState.errors.email) {
-      toast("Error", { description: form.formState.errors.email.message });
-    } else if (form.formState.errors.password) {
-      toast("Error", { description: form.formState.errors.password.message });
-    }
-  }, [form.formState.errors.email, form.formState.errors.password]);
+
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -41,7 +36,7 @@ function LoginForm() {
           password: data.password,
           name: data.name,
           token: data.token,
-          firstName: data.firstName
+          firstName: data.firstName,
         }),
       });
 
@@ -53,19 +48,18 @@ function LoginForm() {
       return res.json();
     },
     onSuccess: (data) => {
-      toast("Succes", { description: data.message });
-      if (
-        typeof window !== "undefined" &&
-        window.turnstile &&
-        turnstileRef.current
-      ) {
-        window.turnstile.reset(turnstileRef.current);
-      } 
-      
+      setValidation(true);
+      // if (
+      //   typeof window !== "undefined" &&
+      //   window.turnstile &&
+      //   turnstileRef.current
+      // ) {
+      //   window.turnstile.reset(turnstileRef.current);
+      // }
     },
     onError: (error: Error) => {
-      toast("Error", { description: error.message });
-      console.error("Registration error:", error);
+      setError(error.message);
+      console.log("Registration error:", error);
       if (
         typeof window !== "undefined" &&
         window.turnstile &&
@@ -81,7 +75,10 @@ function LoginForm() {
       const token = formData.get("cf-turnstile-response") as string;
 
       if (!token) {
-        toast("Error", {description: "Voltooi de Cloudflare-uitdaging of vernieuw de pagina."})
+        
+        setError("Voltooi de Cloudflare-uitdaging of vernieuw de pagina.")
+        
+          
         return;
       }
       const transferData = { ...data, token };
@@ -91,73 +88,88 @@ function LoginForm() {
         mutation.mutate(transferData);
       });
     } else {
-      toast("Error", {
-        description: "Er is een onverwachte error ontstaan. Probeer opnieuw.",
-      });
+      
+       setError( "Er is een onverwachte error ontstaan. Probeer opnieuw.")
+      
     }
   };
 
   return (
     <>
-      <Script
+      
+      {validation ? (
+        <div>
+          <p>
+            Er is een mail verstuurd naar jouw emailadres om je account te
+            activeren.
+          </p>
+        </div>
+      ) : (
+        <>
+        <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js"
         async
         defer
       ></Script>
-      <form
-        onSubmit={form.handleSubmit(handleSubmit)}
-        noValidate
-        ref={formRef}
-        className="flex flex-col gap-2 bg-gray-200"
-      >
-        <input
-          {...form.register("name")}
-          name="name"
-          type="text"
-          className="h-0 overflow-hidden"
-        />
-        <input
-          {...form.register("firstName")}
-          id="firstName"
-          name="firstName"
-          type="text"
-          disabled={isPending}
-        />
-        <input
-          {...form.register("email")}
-          id="email"
-          name="email"
-          type="email"
-          disabled={isPending}
-        />
-        <input
-          {...form.register("password")}
-          id="password"
-          name="password"
-          type="password"
-          disabled={isPending}
-        />
-        <div
-          //className={`cf-turnstile ${interactive ? '.active' : ''}`}
-          className="cf-turnstile rounded-xl overflow-hidden h-16"
-          data-sitekey='0x4AAAAAAB5p_8LYVdoKaNAj' // using .env gives an error in browser console
-          data-appearance="execute"
-          ref={turnstileRef}
-          // data-before-interactive-callback="handleBeforeInteractive"
-          // data-callback="handleBeforeInteractive"
-        ></div>
-        <button
-          className="bg-amber-700 w-[40px] h-[40px] flex justify-center items-center"
-          type="submit"
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          noValidate
+          ref={formRef}
+          className="flex flex-col gap-2 bg-gray-200"
         >
-          {isPending ? (
-            <div className="h-[10px] w-[10px] bg-black"></div>
-          ) : (
-            "Aanmelden"
-          )}
-        </button>
-      </form>
-
+          <input
+            {...form.register("name")}
+            name="name"
+            type="text"
+            className="h-0 overflow-hidden"
+          />
+          <input
+            {...form.register("firstName")}
+            id="firstName"
+            name="firstName"
+            type="text"
+            disabled={isPending}
+          />
+           {form.formState.errors.firstName && form.formState.errors.firstName.message}
+          <input
+            {...form.register("email")}
+            id="email"
+            name="email"
+            type="email"
+            disabled={isPending}
+          />
+          {form.formState.errors.email && form.formState.errors.email.message}
+          <input
+            {...form.register("password")}
+            id="password"
+            name="password"
+            type="password"
+            disabled={isPending}
+          />
+           {form.formState.errors.password && form.formState.errors.password.message}
+          <div
+            //className={`cf-turnstile ${interactive ? '.active' : ''}`}
+            className="cf-turnstile rounded-xl overflow-hidden h-16"
+            data-sitekey="0x4AAAAAAB5p_8LYVdoKaNAj" // using .env gives an error in browser console
+            data-appearance="execute"
+            ref={turnstileRef}
+            // data-before-interactive-callback="handleBeforeInteractive"
+            // data-callback="handleBeforeInteractive"
+          ></div>
+          {error && <div>{error}</div>}
+          <button
+            className="bg-amber-700 w-[40px] h-[40px] flex justify-center items-center"
+            type="submit"
+          >
+            {isLoading ? (
+              <div className="h-[10px] w-[10px] bg-black"></div>
+            ) : (
+              "Aanmelden"
+            )}
+          </button>
+        </form>
+        </>
+      )}
     </>
   );
 }

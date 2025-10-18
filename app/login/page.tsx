@@ -14,18 +14,15 @@ type FormData = z.infer<typeof userSchema>;
 
 function LoginForm() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const form = useForm<FormData>({ resolver: zodResolver(userSchema) });
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (form.formState.errors.email) {
-      toast("Error", { description: form.formState.errors.email.message });
-    } else if (form.formState.errors.password) {
-      toast("Error", { description: form.formState.errors.password.message });
-    }
-  }, [form.formState.errors.email, form.formState.errors.password]);
+
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -53,20 +50,24 @@ function LoginForm() {
     },
     onSuccess: (data) => {
       toast("Succes", { description: data.message });
-      if (
-        typeof window !== "undefined" &&
-        window.turnstile &&
-        turnstileRef.current
-      ) {
-        window.turnstile.reset(turnstileRef.current);
-      } 
+      // if (
+      //   typeof window !== "undefined" &&
+      //   window.turnstile &&
+      //   turnstileRef.current
+      // ) {
+      //   window.turnstile.reset(turnstileRef.current);
+      // } 
       
       window.location.href = "/chat";
       
     },
     onError: (error: Error) => {
-      toast("Error", { description: error.message });
-      console.error("Registration error:", error);
+
+      setError(error.message);
+      if (error.message === "Email not confirmed") {
+        setError("Je account is nog niet geactiveerd. Controleer je spambox of meld je opnieuw aan.")
+      }
+      console.log("Registration error:", error);
       if (
         typeof window !== "undefined" &&
         window.turnstile &&
@@ -78,11 +79,12 @@ function LoginForm() {
   });
   const handleSubmit = (data: FormData) => {
     if (formRef.current) {
+
       const formData = new FormData(formRef.current);
       const token = formData.get("cf-turnstile-response") as string;
 
       if (!token) {
-        toast("Error", {description: "Voltooi de Cloudflare-uitdaging of vernieuw de pagina."})
+        setError("Voltooi de Cloudflare-uitdaging of vernieuw de pagina.")
         return;
       }
       const transferData = { ...data, token };
@@ -92,9 +94,7 @@ function LoginForm() {
         mutation.mutate(transferData);
       });
     } else {
-      toast("Error", {
-        description: "Er is een onverwachte error ontstaan. Probeer opnieuw.",
-      });
+      setError("Er is een onverwachte error ontstaan. Probeer opnieuw.")
     }
   };
 
@@ -137,6 +137,7 @@ function LoginForm() {
           type="email"
           disabled={isPending}
         />
+        {form.formState.errors.email && form.formState.errors.email.message}
         <input
           {...form.register("password")}
           id="password"
@@ -144,6 +145,8 @@ function LoginForm() {
           type="password"
           disabled={isPending}
         />
+        {form.formState.errors.password &&
+          form.formState.errors.password.message}
         <div
           //className={`cf-turnstile ${interactive ? '.active' : ''}`}
           className="cf-turnstile rounded-xl overflow-hidden h-16"
@@ -153,6 +156,7 @@ function LoginForm() {
           // data-before-interactive-callback="handleBeforeInteractive"
           // data-callback="handleBeforeInteractive"
         ></div>
+        {error && <div>{error} </div>}
         <button
           className="bg-amber-700 w-[40px] h-[40px] flex justify-center items-center"
           type="submit"
@@ -167,7 +171,7 @@ function LoginForm() {
       
         <button onClick={handleGoogleLogin} className=" w-[40px] h-[40px] bg-amber-500 " type="submit"> 
         GOOGLE</button>
-     
+    
     </>
   );
 }

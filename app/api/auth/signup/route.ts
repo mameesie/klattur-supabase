@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         { message: "Dit emailadres is al in gebruik." },
         { status: 400 }
       );
-    } else if (provider === null) {
+    } else if (provider === null || provider === "unverified") {
       // Email doesn't exist, proceed with signup
 
       // signUp

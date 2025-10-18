@@ -28,8 +28,8 @@ CREATE TABLE public.messages (
   text_field TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW())
 );
-
--- Function that triggers on identities
+--------------------functions-----------------------------------------------------------------------------------------
+-- Function that triggers on creating new account
 CREATE OR REPLACE FUNCTION public.handle_new_identity() 
 RETURNS TRIGGER
 SECURITY DEFINER
@@ -78,15 +78,55 @@ CREATE OR REPLACE FUNCTION public.does_email_exist(user_email TEXT)
 RETURNS TEXT AS $$
 DECLARE
   user_provider TEXT;
+  email_confirmed_at TIMESTAMP;
 BEGIN
-  SELECT provider INTO user_provider
-  FROM public.profiles
-  WHERE email = user_email
+  SELECT p.provider, u.email_confirmed_at INTO user_provider, email_confirmed_at
+  FROM public.profiles p
+  LEFT JOIN auth.users u ON p.user_id = u.id
+  WHERE p.email = user_email
   LIMIT 1;
   
-  RETURN user_provider; -- Returns provider or NULL if email doesn't exist
+  -- If no user found, return null
+  IF user_provider IS NULL THEN
+    RETURN NULL;
+  END IF;
+  
+  -- If email is not confirmed (NULL means waiting for verification)
+  IF email_confirmed_at IS NULL THEN
+    RETURN 'unverified';
+  END IF;
+  
+  -- Otherwise return the provider
+  RETURN user_provider;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog, auth;
+
+
+-- get 10 chats from a user to show in history
+CREATE OR REPLACE FUNCTION public.get_user_chats()
+RETURNS TABLE (
+  chat_id UUID,
+  title TEXT,
+  created_at TIMESTAMP WITH TIME ZONE,
+  updated_at TIMESTAMP WITH TIME ZONE
+) AS $$
+BEGIN
+  -- RLS will automatically filter based on auth.uid()
+  RETURN QUERY
+  SELECT 
+    chats.chat_id,
+    chats.title,
+    chats.created_at,
+    chats.updated_at
+  FROM public.chats
+  WHERE user_id = auth.uid()
+  ORDER BY chats.created_at DESC;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+
+-------------------end-functions-----------------------------------------------------------------------------------------
+
 
 
 
@@ -114,8 +154,5 @@ USING (auth.uid() = user_id);
 CREATE INDEX idx_chats_user_created 
 ON public.chats(user_id, created_at DESC);
 
-CREATE INDEX idx_messages_chat_created 
-ON public.messages(chat_id, created_at DESC);
-
 CREATE INDEX idx_messages_user_created 
-ON public.messages(user_id, created_at DESC);
+ON public.messages(user_id, chat_id, created_at DESC);
