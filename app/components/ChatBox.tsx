@@ -56,7 +56,7 @@ const ChatBox = () => {
     <div className="flex flex-col bg-pink-mid w-full items-center min-h-full ">
       <div
         style={{ width: "calc(100% - 60px)" }}
-        className=" max-w-[690px]  bg-pink-dark flex-1 pl-[10px] pr-[10px] pt-[10px] pb-[10px] "
+        className=" max-w-[690px] h-[100%] bg-pink-dark flex-1 pl-[10px] pr-[10px] pt-[10px] pb-[10px] "
       >
         {
           <div className="flex justify-start">
@@ -126,7 +126,7 @@ const ChatBox = () => {
       <div className="sticky bottom-0 flex justify-center items-center w-full ">
         <div
           ref={containerRef}
-          className="bg-white min-h-[95px] w-full max-w-[800px] ml-[10px] mr-[10px] flex justify-center items-center rounded-t-[30px]"
+          className="bg-white min-h-[95px] w-full max-w-[800px] mx-[10px] flex justify-center items-center rounded-t-[30px]"
         >
           <form
             className="w-full m-[27px] flex justify-center items-center bottom-0"
@@ -134,7 +134,7 @@ const ChatBox = () => {
           >
             <textarea
               ref={textareaRef}
-              className="w-full bg-white resize-none outline-none overflow-hidden"
+              className="w-full bg-white resize-none outline-none overflow-hidden mr-[20px]"
               value={input}
               placeholder="Typ hier..."
               onChange={(e) => {
