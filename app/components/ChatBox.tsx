@@ -25,7 +25,8 @@ const ChatBox = () => {
     }
   }, [input]);
 
-  useEffect(() => { // check if the message has done status so we can setIsStreaming to false
+  useEffect(() => {
+    // check if the message has done status so we can setIsStreaming to false
     console.log(messages);
 
     // Check if the last message is from assistant and still streaming
@@ -52,8 +53,30 @@ const ChatBox = () => {
   };
 
   return (
-    <div className="flex flex-col bg-gray-300 w-full items-center min-h-full ">
-      <div style={{ width: "calc(100% - 40px)" }} className=" max-w-[670px]  bg-gray-200 flex-1 pl-[10px] pr-[10px] pt-[10px] pb-[10px] ">
+    <div className="flex flex-col bg-pink-mid w-full items-center min-h-full ">
+      <div
+        style={{ width: "calc(100% - 60px)" }}
+        className=" max-w-[690px]  bg-pink-dark flex-1 pl-[10px] pr-[10px] pt-[10px] pb-[10px] "
+      >
+        {
+          <div className="flex justify-start">
+            <div
+              key="id-1-1"
+              className=" rounded-[20px] inline-flex overflow-hidden p-[15px] m-[10px] bg-pink-light items-center"
+            >
+               <div
+                className={`bg-red-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
+              >
+                
+
+              </div>
+              <div className="ml-[15px]">
+                  Hi! Wat is er aan de hand, waar zit je mee?
+              </div>
+             
+            </div>
+          </div>
+        }
         {messages.map((message) => (
           <div
             key={`${message.id}-1`}
@@ -63,7 +86,7 @@ const ChatBox = () => {
           >
             <div
               key={message.id}
-              className=" rounded-[10px] inline-flex overflow-hidden p-[15px] m-[10px] bg-gray-100 items-center"
+              className=" rounded-[20px] inline-flex overflow-hidden p-[15px] m-[10px] bg-pink-light items-center"
             >
               {/* whitespace-pre-wrap */}
               {/*message.role === "user" ? "User: " : "AI: "*/}
@@ -103,10 +126,10 @@ const ChatBox = () => {
       <div className="sticky bottom-0 flex justify-center items-center w-full ">
         <div
           ref={containerRef}
-          className="bg-white min-h-[80px] w-full max-w-[700px] ml-[10px] mr-[10px] flex justify-center items-center rounded-tl-[10px] rounded-tr-[10px]"
+          className="bg-white min-h-[95px] w-full max-w-[800px] ml-[10px] mr-[10px] flex justify-center items-center rounded-t-[30px]"
         >
           <form
-            className="w-full m-[15px] flex justify-center items-center bottom-0"
+            className="w-full m-[27px] flex justify-center items-center bottom-0"
             onSubmit={handleSubmit}
           >
             <textarea
@@ -120,7 +143,7 @@ const ChatBox = () => {
               rows={1}
             />
             <button
-              className="bg-gray-300 w-[40px] h-[40px] rounded-[10px] flex justify-center items-center"
+              className="bg-yellow-button w-[40px] h-[40px] rounded-[10px] flex justify-center items-center"
               type="submit"
             >
               {isStreaming ? (
@@ -134,7 +157,8 @@ const ChatBox = () => {
       </div>
       <style jsx>{`
         @keyframes grow {
-          0%, 100% {
+          0%,
+          100% {
             transform: scale(1);
           }
           50% {

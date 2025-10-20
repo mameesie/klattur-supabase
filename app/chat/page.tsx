@@ -12,7 +12,7 @@ function ChatPage() {
   return (
   <div className="flex h-full">
     {sidePanelOut ? (
-      <div className="absolute md:relative md:flex-col w-[300px] md:w-[300px] h-screen md:h-auto flex-shrink-0 bg-gray-200 z-50">
+      <div className="absolute md:relative md:flex-col w-[300px] md:w-[300px] h-screen md:h-auto  flex-shrink-0 bg-pink-light z-50">
         <div className="flex justify-end p-[15px]">
           <button 
             onClick={() => setSidePanelOut(!sidePanelOut)}
@@ -22,7 +22,7 @@ function ChatPage() {
         </div>
       </div>
     ) : (
-      <div className="absolute md:relative md:flex-col w-[50px] flex-shrink-0 bg-gray-200 z-50">
+      <div className="absolute md:relative md:flex-col rounded-br-[20px] md:rounded-br-[0px] w-[50px] flex-shrink-0 bg-pink-light z-50">
         <div className="flex justify-center p-[15px]">
           <button
             onClick={() => setSidePanelOut(!sidePanelOut)}
