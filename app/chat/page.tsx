@@ -10,7 +10,7 @@ function ChatPage() {
 
 
   return (
-  <div className="flex h-full">
+  <div className="flex min-h-full bg-pink-mid">
     {sidePanelOut ? (
       <div className="absolute md:relative md:flex-col w-[300px] md:w-[300px] h-screen md:h-auto  flex-shrink-0 bg-pink-light z-50">
         <div className="flex justify-end p-[15px]">
