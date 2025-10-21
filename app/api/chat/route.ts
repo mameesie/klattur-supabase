@@ -22,40 +22,39 @@ export async function POST(request: NextRequest) {
     }
 
     // unpack request json
-    const { messages, chatId }: { messages: UIMessage[]; chatId?: string } =
+    const { message, chatId }: { message: UIMessage; chatId?: string } =
       await request.json(); // validate body safeParse, see habits for alzheimer
     let currentChatId = chatId;
     // if there is no ChatId we need to create a new entry in the database
     if (!currentChatId) {
       const { data: chatIdFromDB, error: chatIdFromDBError } =
         await supabase.rpc("create_chat", { user_id_arg: user.id });
-      console.log(
-        "chatIdFromDBError: ",
-        chatIdFromDBError,
-        "chatIdFromDB: ",
-        chatIdFromDB
-      );
+      if (chatIdFromDBError) throw chatIdFromDBError;
       currentChatId = chatIdFromDB;
     }
 
-    // safe last user message to db
-    const lastUserMessage = messages[messages.length - 1];
-    if (lastUserMessage && lastUserMessage.role === "user") {
-      const { data: createdMessage, error: createdMessageError } =
-        await supabase.rpc("save_message", {
-          user_id_arg: user.id,
-          chat_id_arg: currentChatId,
-          role_arg: "user",
-          content_arg: lastUserMessage.parts,
-        });
-      console.log(
-        "createdMessageError: ",
-        createdMessageError,
-        "createdMessage: ",
-        createdMessage
-      );
-    }
-    // check database if email already exist
+    const { data: previousMessages, error: loadError } = await supabase.rpc("load_chat_messages", {chat_id_arg: currentChatId});
+    if (loadError) throw loadError;
+
+    const dbMessages: UIMessage[] = (previousMessages || []).map(msg => ({
+      id: msg.id,
+      role: msg.role as 'user' | 'assistant',
+      parts: msg.content,
+      createdAt: new Date(msg.created_at),
+    }));
+
+
+    // Ensure the new user message has an ID
+    const messageWithId = {
+      ...message,
+      id: message.id || generateId(),
+      createdAt: message.createdAt || new Date(),
+    };
+
+     // Append the new user message
+    const allMessages = [...dbMessages, messageWithId];
+    
+  
 
     const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const result = await streamText({
@@ -66,26 +65,37 @@ export async function POST(request: NextRequest) {
       system: `je bent een the work byron katie coach en vraagt de volgende vragen:
       
       `, //vraag elke vraag los en wacht het antwoord af
-      messages: convertToModelMessages(messages),
-      async onFinish({ text }) {
-        console.log("text: ", text);
-        const { data: createdMessage, error: createdMessageError } =
-          await supabase.rpc("create_message", {
-            chat_id: currentChatId,
-            role: "assistant",
-            content: text,
-          });
-        console.log(
-          "createdMessageError: ",
-          createdMessageError,
-          "createdMessage: ",
-          createdMessage
-        );
-        if (createdMessageError) throw createdMessageError;
-      },
+      messages: convertToModelMessages(allMessages),
+      
     });
     console.log(result.toUIMessageStreamResponse());
-    return {result: result.toUIMessageStreamResponse(),chatId: currentChatId};
+    return result.toUIMessageStreamResponse({
+      originalMessages: allMessages,
+      generateMessageId: createIdGenerator({ prefix: 'msg', size: 16 }),
+      onFinish: async ({ messages }) => {
+        // Save both messages atomically using RPC
+        const userMessage = messages[messages.length - 2];
+        const assistantMessage = messages[messages.length - 1];
+        
+        try {
+          const { error: saveError } = await supabase.rpc('save_message_pair', {
+            chat_id_arg: currentChatId,
+            user_msg_id: userMessage.id,
+            user_content: userMessage.parts,
+            user_created_at: userMessage.createdAt?.toISOString() || new Date().toISOString(),
+            assistant_msg_id: assistantMessage.id,
+            assistant_content: assistantMessage.parts,
+            assistant_created_at: assistantMessage.createdAt?.toISOString() || new Date().toISOString(),
+          });
+          
+          if (saveError) {
+            console.error('Failed to save messages:', saveError);
+          }
+        } catch (error) {
+          console.error('Error in onFinish:', error);
+        }
+      },
+    });
   } catch (error) {
     console.log(error);
   }
