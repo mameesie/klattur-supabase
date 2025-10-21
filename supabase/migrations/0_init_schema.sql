@@ -10,13 +10,12 @@ CREATE TABLE public.profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW())
 );
 
--- Create chats table
-CREATE TABLE public.chats (
-  chat_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES public.profiles ON DELETE CASCADE,
+CREATE TABLE chats (
+  id BIGSERIAL PRIMARY KEY,
+  user_id UUID,
   title TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW())
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create messages table
@@ -102,27 +101,74 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog, auth;
 
 
--- get 10 chats from a user to show in history
-CREATE OR REPLACE FUNCTION public.get_user_chats()
-RETURNS TABLE (
-  chat_id UUID,
-  title TEXT,
-  created_at TIMESTAMP WITH TIME ZONE,
-  updated_at TIMESTAMP WITH TIME ZONE
-) AS $$
+-- -- get 10 chats from a user to show in history
+-- CREATE OR REPLACE FUNCTION public.get_user_chats()
+-- RETURNS TABLE (
+--   chat_id UUID,
+--   title TEXT,
+--   created_at TIMESTAMP WITH TIME ZONE,
+--   updated_at TIMESTAMP WITH TIME ZONE
+-- ) AS $$
+-- BEGIN
+--   -- RLS will automatically filter based on auth.uid()
+--   RETURN QUERY
+--   SELECT 
+--     chats.chat_id,
+--     chats.title,
+--     chats.created_at,
+--     chats.updated_at
+--   FROM public.chats
+--   WHERE user_id = auth.uid()
+--   ORDER BY chats.created_at DESC;
+-- END;
+-- $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- Create chat
+CREATE OR REPLACE FUNCTION create_chat(user_id_arg UUID DEFAULT NULL)
+RETURNS BIGINT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_chat_id BIGINT;
 BEGIN
-  -- RLS will automatically filter based on auth.uid()
-  RETURN QUERY
-  SELECT 
-    chats.chat_id,
-    chats.title,
-    chats.created_at,
-    chats.updated_at
-  FROM public.chats
-  WHERE user_id = auth.uid()
-  ORDER BY chats.created_at DESC;
+  INSERT INTO chats (user_id)
+  VALUES (user_id_arg)  -- Just use the provided value (can be NULL)
+  RETURNING id INTO v_chat_id;
+  
+  RETURN v_chat_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$;
+
+
+-- save a message with user_id
+CREATE OR REPLACE FUNCTION save_message(
+  user_id_arg UUID,
+  chat_id_arg BIGINT,
+  role_arg VARCHAR,
+  content_arg TEXT
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_message_id UUID;
+BEGIN
+  INSERT INTO messages (user_id, chat_id, role, content)
+  VALUES (user_id_arg, chat_id_arg, role_arg, content_arg)
+  RETURNING id INTO v_message_id;
+  
+  -- Update the chat's updated_at timestamp
+  UPDATE chats 
+  SET updated_at = NOW() 
+  WHERE id = chat_id_arg;
+  
+  RETURN v_message_id;
+END;
+$$;
 
 
 -------------------end-functions-----------------------------------------------------------------------------------------
