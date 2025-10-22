@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import React, { useEffect, useRef } from "react";
@@ -8,35 +6,39 @@ import { useState } from "react";
 import Arrow from "@/public/svg/arrow";
 import { DefaultChatTransport } from "ai";
 import { ChatStore, useChatStore } from "@/store/useStore";
+
+
 const ChatBox = () => {
   const [input, setInput] = useState("");
-  const setCurrentChatObject = useChatStore((state: ChatStore) => state.setChatObject)
-  const id = useChatStore((state: ChatStore) => state.chatObject.currentChatId);
-  const { messages, sendMessage } = useChat({
-    id: id?.toString(), // use the provided chat ID/ load initial messages
+  const setCurrentChatObject = useChatStore(
+    (state: ChatStore) => state.setChatObject
+  );
+  const currentChatId = useChatStore((state: ChatStore) => state.chatObject.currentChatId);
+  const { messages, sendMessage, setMessages } = useChat({
+    id: currentChatId?.toString(), // use the provided chat ID/ load initial messages
     transport: new DefaultChatTransport({
-      api: '/api/chat',
+      api: "/api/chat",
     }),
     onData: (dataPart) => {
       // Capture the chatId from transient data
-      if (dataPart.type === 'data-chatId') {
-        const newChatId = (dataPart.data as { chatId: number }).chatId;
-        if (newChatId && !id) {
-          setCurrentChatObject(newChatId);
-          console.log('Chat ID received:', newChatId);
-        }
+      if (dataPart.type === "data-chatId") {
+        // const newChatId = (dataPart.data as { chatId: number }).chatId;
+        // if (newChatId && !currentChatId) {
+        //   setCurrentChatObject(newChatId);
+        //   console.log("Chat ID received:", newChatId);
+        // }
       }
     },
-  }); 
-
+  });
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+
   useEffect(() => {
-    console.log("id: ",id)
-  },[id])
-  
+    setMessages([])//reset useChat
+  },[currentChatId])
+
   useEffect(() => {
     // used to not overflow textarea when there is more text
 
@@ -53,7 +55,6 @@ const ChatBox = () => {
   }, [input]);
 
   useEffect(() => {
-    // check if the message has done status so we can setIsStreaming to false
     console.log(messages);
 
     // Check if the last message is from assistant and still streaming
@@ -65,10 +66,11 @@ const ChatBox = () => {
       if (lastPart && "state" in lastPart && lastPart.state === "done") {
         setIsStreaming(false);
       }
-    } else {
+    } else if (isStreaming) {
+      // Only update if currently streaming
       setIsStreaming(false);
     }
-  }, [messages]);
+  }, [messages, isStreaming]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -169,6 +171,7 @@ const ChatBox = () => {
               className="bg-yellow-button min-w-[40px] h-[40px] rounded-[10px] flex justify-center items-center"
               type="submit"
             >
+              
               {isStreaming ? (
                 <div className="w-[15px] h-[15px] bg-white rounded-[5px] animate-grow" />
               ) : (
@@ -176,6 +179,16 @@ const ChatBox = () => {
               )}
             </button>
           </form>
+          {/* <button onClick={() => {
+            console.log("current chat object", currentChatId)
+            setCurrentChatObject(3)
+            console.log("current chat object", currentChatId)
+            }}>setcurrentchat object</button>
+            <button onClick={() => {
+            console.log("current chat object", currentChatId)
+            setCurrentChatObject(4)
+            console.log("current chat object", currentChatId)
+            }}>setcurrentchat object</button> */}
         </div>
       </div>
       <style jsx>{`

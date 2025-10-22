@@ -3,10 +3,15 @@ import React from "react";
 import { useState } from "react";
 import ChatBox from "../components/ChatBox";
 import SidePanel from "@/public/svg/sidePanel";
+import { ChatStore, useChatStore } from "@/store/useStore";
+import { v4 as uuidv4 } from 'uuid';
 
 
 function ChatPage() {
   const [sidePanelOut, setSidePanelOut] = useState(false);
+  const setCurrentChatObject = useChatStore(
+      (state: ChatStore) => state.setChatObject
+    );
 
 
   return (
@@ -19,6 +24,12 @@ function ChatPage() {
             className="w-[20px] overflow-hidden">
             <SidePanel />
           </button>
+        </div>
+        <div>
+          <button onClick={() => {
+            const newChatId = uuidv4()
+            setCurrentChatObject(newChatId)
+          }}>begin een nieuw gesprek</button>
         </div>
       </div>
     ) : (
