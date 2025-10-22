@@ -1,8 +1,24 @@
-import { streamText, UIMessage, convertToModelMessages } from "ai";
+import {
+  streamText,
+  UIMessage,
+  convertToModelMessages,
+  createIdGenerator,
+  generateId,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+} from "ai";
 import type { NextRequest } from "next/server";
 import { createOpenAI } from "@ai-sdk/openai";
 import "dotenv/config";
 import { createClient } from "@/supabase/auth/server";
+
+type DBMessage = {
+  id: string;
+  chat_id: string;
+  role: string;
+  content: any; // or JSONValue if you have that type
+  created_at: string;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,9 +38,12 @@ export async function POST(request: NextRequest) {
     }
 
     // unpack request json
-    const { message, chatId }: { message: UIMessage; chatId?: string } =
+    const { messages, id }: { messages: UIMessage[]; id?: string | undefined } =
       await request.json(); // validate body safeParse, see habits for alzheimer
-    let currentChatId = chatId;
+      const message = messages[messages.length - 1];
+    console.log("id: ", id)
+      let currentChatId = Number(id);
+      console.log("id: ", currentChatId)
     // if there is no ChatId we need to create a new entry in the database
     if (!currentChatId) {
       const { data: chatIdFromDB, error: chatIdFromDBError } =
@@ -33,59 +52,64 @@ export async function POST(request: NextRequest) {
       currentChatId = chatIdFromDB;
     }
 
-    const { data: previousMessages, error: loadError } = await supabase.rpc("load_chat_messages", {chat_id_arg: currentChatId});
+    const { data: previousMessages, error: loadError } = await supabase.rpc(
+      "load_chat_messages",
+      { chat_id_arg: currentChatId }
+    );
     if (loadError) throw loadError;
 
-    const dbMessages: UIMessage[] = (previousMessages || []).map(msg => ({
-      id: msg.id,
-      role: msg.role as 'user' | 'assistant',
-      parts: msg.content,
-      createdAt: new Date(msg.created_at),
-    }));
+    const dbMessages: UIMessage[] = (previousMessages || []).map(
+      (msg: DBMessage) => ({
+        id: msg.id,
+        role: msg.role as "user" | "assistant",
+        parts: msg.content,
+      })
+    );
 
-
-    // Ensure the new user message has an ID
-    const messageWithId = {
+    // Ensure new user message has an ID
+    const messageWithId: UIMessage = {
       ...message,
-      id: message.id || generateId(),
-      createdAt: message.createdAt || new Date(),
+      id: message.id || `user-${generateId()}`,
     };
 
-     // Append the new user message
+    // Append the new user message
     const allMessages = [...dbMessages, messageWithId];
-    
-  
+
+    // Create the UIMessageStream
+    const stream = createUIMessageStream({
+  execute: async ({ writer }) => {
+    // Send chatId as transient data
+    writer.write({
+      type: 'data-chatId',
+      data: { chatId: currentChatId },
+      transient: true,
+    });
 
     const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const result = await streamText({
       model: openai("gpt-4o-mini"),
-      //maxTokens: 16384, // completion max tokens
       temperature: 0.3,
       maxRetries: 5,
-      system: `je bent een the work byron katie coach en vraagt de volgende vragen:
-      
-      `, //vraag elke vraag los en wacht het antwoord af
+      system: `je bent een the work byron katie coach en vraagt de volgende vragen:`,
       messages: convertToModelMessages(allMessages),
-      
-    });
-    console.log(result.toUIMessageStreamResponse());
-    return result.toUIMessageStreamResponse({
-      originalMessages: allMessages,
-      generateMessageId: createIdGenerator({ prefix: 'msg', size: 16 }),
-      onFinish: async ({ messages }) => {
-        // Save both messages atomically using RPC
-        const userMessage = messages[messages.length - 2];
-        const assistantMessage = messages[messages.length - 1];
+      onFinish: async ({ text, finishReason, usage }) => {
+        // Save messages after completion
+        // Note: We need to construct the messages manually here
+        const userMessage = messageWithId;
+        const assistantMessage = {
+          id: `asst-${generateId()}`,
+          role: 'assistant' as const,
+          parts: [{ type: 'text' as const, text }],
+        };
         
         try {
           const { error: saveError } = await supabase.rpc('save_message_pair', {
             chat_id_arg: currentChatId,
+            user_id_arg: user.id,
             user_msg_id: userMessage.id,
             user_content: userMessage.parts,
-            user_created_at: userMessage.createdAt?.toISOString() || new Date().toISOString(),
             assistant_msg_id: assistantMessage.id,
             assistant_content: assistantMessage.parts,
-            assistant_created_at: assistantMessage.createdAt?.toISOString() || new Date().toISOString(),
           });
           
           if (saveError) {
@@ -96,7 +120,14 @@ export async function POST(request: NextRequest) {
         }
       },
     });
+
+    // Merge the text stream
+    writer.merge(result.toUIMessageStream());
+  },
+});
+    return createUIMessageStreamResponse({ stream })
   } catch (error) {
     console.log(error);
+    console.error(error);
   }
 }

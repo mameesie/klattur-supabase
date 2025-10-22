@@ -1,15 +1,42 @@
+
+
 "use client";
 
 import React, { useEffect, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
 import Arrow from "@/public/svg/arrow";
+import { DefaultChatTransport } from "ai";
+import { ChatStore, useChatStore } from "@/store/useStore";
 const ChatBox = () => {
   const [input, setInput] = useState("");
-  const { messages, sendMessage } = useChat(); // useCHat automatically uses /api/chat as route + uses previous messages in the prompt
+  const setCurrentChatObject = useChatStore((state: ChatStore) => state.setChatObject)
+  const id = useChatStore((state: ChatStore) => state.chatObject.currentChatId);
+  const { messages, sendMessage } = useChat({
+    id: id?.toString(), // use the provided chat ID/ load initial messages
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+    }),
+    onData: (dataPart) => {
+      // Capture the chatId from transient data
+      if (dataPart.type === 'data-chatId') {
+        const newChatId = (dataPart.data as { chatId: number }).chatId;
+        if (newChatId && !id) {
+          setCurrentChatObject(newChatId);
+          console.log('Chat ID received:', newChatId);
+        }
+      }
+    },
+  }); 
+
+
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  useEffect(() => {
+    console.log("id: ",id)
+  },[id])
+  
   useEffect(() => {
     // used to not overflow textarea when there is more text
 
@@ -64,16 +91,12 @@ const ChatBox = () => {
               key="id-1-1"
               className=" rounded-[20px] inline-flex overflow-hidden p-[15px] m-[10px] bg-pink-light items-center"
             >
-               <div
+              <div
                 className={`bg-red-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
-              >
-                
-
-              </div>
+              ></div>
               <div className="ml-[15px]">
-                  Hi! Wat is er aan de hand, waar zit je mee?
+                Hi! Wat is er aan de hand, waar zit je mee?
               </div>
-             
             </div>
           </div>
         }
