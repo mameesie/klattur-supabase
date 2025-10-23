@@ -1,7 +1,8 @@
-import page from "@/app/page";
+
+import { createClient } from "@/supabase/auth/server";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
      // create client from supabase
         const supabase = await createClient();
@@ -18,11 +19,16 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        // unpack json
-        const { createdAt, chatUUID}: { createdAt: Text, chatUUID: Text} = await request.json();
+            // Get query parameters from URL
+    const searchParams = request.nextUrl.searchParams;
+    const createdAt = searchParams.get('createdAt') || null;
+    const chatUUID = searchParams.get('chatUUID') || null;
+    const pageSize = parseInt(searchParams.get('pageSize') || '20');
+
+       
         // Call the RPC function
         const { data: chats, error } = await supabase
-          .rpc('get_user_chats', {user_id_arg: user.id, cursor_created_at: createdAt, cursor_chat_uuid: chatUUID, page_size: 20    });
+          .rpc('get_chats_paginated', {user_id_arg: user.id, cursor_created_at: createdAt, cursor_chat_uuid: chatUUID, page_size: pageSize    });
     
         if (error) throw error
     

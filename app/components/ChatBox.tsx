@@ -4,40 +4,28 @@ import React, { useEffect, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
 import Arrow from "@/public/svg/arrow";
-import { DefaultChatTransport } from "ai";
+import { DefaultChatTransport, UIDataTypes, UIMessage, UITools } from "ai";
 import { ChatStore, useChatStore } from "@/store/useStore";
 
+interface props {
+  sendMessage: (message: { text: string }) => void;
+  messages: UIMessage<unknown, UIDataTypes, UITools>[];
+}
 
-const ChatBox = () => {
+
+const ChatBox = ( {messages, sendMessage} :props) => {
   const [input, setInput] = useState("");
   const setCurrentChatObject = useChatStore(
     (state: ChatStore) => state.setChatObject
   );
   const currentChatId = useChatStore((state: ChatStore) => state.chatObject.currentChatId);
-  const { messages, sendMessage, setMessages } = useChat({
-    id: currentChatId?.toString(), // use the provided chat ID/ load initial messages
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-    }),
-    onData: (dataPart) => {
-      // Capture the chatId from transient data
-      if (dataPart.type === "data-chatId") {
-        // const newChatId = (dataPart.data as { chatId: number }).chatId;
-        // if (newChatId && !currentChatId) {
-        //   setCurrentChatObject(newChatId);
-        //   console.log("Chat ID received:", newChatId);
-        // }
-      }
-    },
-  });
+
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
 
-  useEffect(() => {
-    setMessages([])//reset useChat
-  },[currentChatId])
+
 
   useEffect(() => {
     // used to not overflow textarea when there is more text

@@ -124,37 +124,44 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog, auth;
 -- END;
 -- $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- create chat if it does'n't exist
-CREATE OR REPLACE FUNCTION public.get_or_create_chat(
-  user_id_arg UUID, 
-  chat_uuid_arg UUID
-)
-RETURNS INTEGER AS $$
-DECLARE
-  v_chat_id INTEGER;
+--does_chat_exist
+CREATE OR REPLACE FUNCTION public.does_chat_exist(chat_id_arg UUID) 
+RETURNS BOOLEAN AS $$ 
 BEGIN
-  -- Try to get existing chat
-  SELECT id INTO v_chat_id
-  FROM public.chats
-  WHERE chat_uuid = chat_uuid_arg;
-  
-  -- If chat doesn't exist, create it
-  IF v_chat_id IS NOT NULL THEN
-    RETURN TRUE
-  ELSE
-    INSERT INTO public.chats (user_id, chat_uuid)
-    VALUES (user_id_arg, chat_uuid_arg)
-    
-    RETURN FALSE
-  END IF;
-END;
+  RETURN EXISTS(
+    SELECT 1 
+    FROM public.chats 
+    WHERE chat_uuid = chat_id_arg
+  );
+END; 
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog;
 
+-- Create chat
+CREATE OR REPLACE FUNCTION create_chat(user_id_arg UUID, chat_uuid_arg UUID, title_arg TEXT)
+RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_chat_id TEXT;
+BEGIN
+  INSERT INTO chats (user_id, chat_uuid, title)
+  VALUES (user_id_arg, chat_uuid_arg, title_arg)  -- Just use the provided value (can be NULL)
+  RETURNING chat_uuid INTO v_chat_id;
+  
+  RETURN v_chat_id;
+END;
+$$;
+
 -- Load all messages for a specific chat, ordered by creation time
-CREATE OR REPLACE FUNCTION load_chat_messages(chat_uuid_arg INTEGER)
+CREATE OR REPLACE FUNCTION load_chat_messages(
+  chat_uuid_arg UUID,
+  sort_order TEXT DEFAULT 'ASC'
+)
 RETURNS TABLE (
   id TEXT,
-  chat_id INTEGER,
+  chat_id UUID,
   role TEXT,
   content JSONB,
   created_at TIMESTAMPTZ
@@ -169,7 +176,13 @@ BEGIN
     m.created_at
   FROM messages m
   WHERE m.chat_id = chat_uuid_arg
-  ORDER BY m.created_at ASC;
+  ORDER BY 
+    CASE 
+      WHEN UPPER(sort_order) = 'DESC' THEN m.created_at
+    END DESC,
+    CASE 
+      WHEN UPPER(sort_order) != 'DESC' THEN m.created_at
+    END ASC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

@@ -6,11 +6,15 @@ import {
   generateId,
   createUIMessageStream,
   createUIMessageStreamResponse,
+  generateText,
+  GenerateTextResult,
+  ToolSet,
 } from "ai";
 import type { NextRequest } from "next/server";
 import { createOpenAI } from "@ai-sdk/openai";
 import "dotenv/config";
 import { createClient } from "@/supabase/auth/server";
+import { changeEmail } from "@/app/actions/actions";
 
 type DBMessage = {
   id: string;
@@ -42,16 +46,35 @@ export async function POST(request: NextRequest) {
       await request.json(); // validate body safeParse, see habits for alzheimer
     const message = messages[messages.length - 1];
     console.log("id: ", id);
-    const currentChatId = id
+    let currentChatId = id
     console.log("id: ", currentChatId);
     // if there is no ChatId we need to create a new entry in the database
-    const { data: doesChatExist, error: doesChatExistError } = await supabase.rpc("get_or_create_chat", { user_id_arg: user.id, chat_id_arg: currentChatId });
+    const { data: doesChatExist, error: doesChatExistError } = await supabase.rpc("does_chat_exist", { chat_id_arg: currentChatId });
+    
+    console.log("textpart of UIMessage: ", message.parts[0].type === 'text' ? message.parts[0].text : '');
     if (doesChatExistError) { throw doesChatExistError }
+    let title: string = 'Untitled'; 
+    if (!doesChatExist) {
+      console.log("chatId does not exist yet");
+      const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const result = await generateText({
+          model: openai("gpt-4o-mini"),
+          temperature: 0.3,
+          maxRetries: 5,
+          system: `vat dit stukje tekst samen en maak daar een titel van. Dit mag maximaal 30 characters bevatten. Antwoord alleen de titel zonder andere informatie.`,
+          prompt: message.parts[0].type === 'text' ? message.parts[0].text : ''})
 
+      console.log("titel:", result.content)
+      title = result.content[0].type === 'text' ? result.content[0].text : 'Untitled';
+          const { data: chatIdFromDB, error: chatIdFromDBError } =
+        await supabase.rpc("create_chat", { user_id_arg: user.id, chat_uuid_arg: currentChatId, title_arg: title });
+      if (chatIdFromDBError) throw chatIdFromDBError;
+      currentChatId = chatIdFromDB;
+    }
 
     const { data: previousMessages, error: loadError } = await supabase.rpc(
       "load_chat_messages",
-      { chat_id_arg: currentChatId }
+      { chat_uuid_arg: currentChatId }
     );
     if (loadError) throw loadError;
 
@@ -72,13 +95,14 @@ export async function POST(request: NextRequest) {
     // Append the new user message
     const allMessages = [...dbMessages, messageWithId];
 
+    console.log("dt is de titel: ", title)
     // Create the UIMessageStream
     const stream = createUIMessageStream({
       execute: async ({ writer }) => {
         // Send chatId as transient data
         writer.write({
-          type: "data-doesChatExist", //data-chatId
-          data: { doesChatExist: doesChatExist },
+          type: "data-doesChatExist", //chatId
+          data: { doesChatExist: doesChatExist, chatId: currentChatId, title: title },
           transient: true,
         });
 

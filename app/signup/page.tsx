@@ -160,8 +160,9 @@ function LoginForm() {
           <button
             className="bg-amber-700 w-[40px] h-[40px] flex justify-center items-center"
             type="submit"
+            disabled={mutation.isPending}
           >
-            {isLoading ? (
+            {mutation.isPending ? (
               <div className="h-[10px] w-[10px] bg-black"></div>
             ) : (
               "Aanmelden"
