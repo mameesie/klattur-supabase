@@ -11,7 +11,8 @@ CREATE TABLE public.profiles (
 );
 
 CREATE TABLE chats (
-  id SERIAL PRIMARY KEY,
+  id SERIAL,
+  chat_uuid UUID NOT NULL PRIMARY KEY,
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   title TEXT, --NOT NULL
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -21,7 +22,7 @@ CREATE TABLE chats (
 -- Create messages table
 CREATE TABLE public.messages (
   id TEXT PRIMARY KEY,
-  chat_id INTEGER REFERENCES public.chats(id) ON DELETE CASCADE,
+  chat_id UUID REFERENCES public.chats(chat_uuid) ON DELETE CASCADE,
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   role TEXT NOT NULL,
   content JSONB NOT NULL,
@@ -123,26 +124,34 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog, auth;
 -- END;
 -- $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- Create chat
-CREATE OR REPLACE FUNCTION create_chat(user_id_arg UUID DEFAULT NULL)
-RETURNS INTEGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
+-- create chat if it does'n't exist
+CREATE OR REPLACE FUNCTION public.get_or_create_chat(
+  user_id_arg UUID, 
+  chat_uuid_arg UUID
+)
+RETURNS INTEGER AS $$
 DECLARE
   v_chat_id INTEGER;
 BEGIN
-  INSERT INTO chats (user_id)
-  VALUES (user_id_arg)  -- Just use the provided value (can be NULL)
-  RETURNING id INTO v_chat_id;
+  -- Try to get existing chat
+  SELECT id INTO v_chat_id
+  FROM public.chats
+  WHERE chat_uuid = chat_uuid_arg;
   
-  RETURN v_chat_id;
+  -- If chat doesn't exist, create it
+  IF v_chat_id IS NOT NULL THEN
+    RETURN TRUE
+  ELSE
+    INSERT INTO public.chats (user_id, chat_uuid)
+    VALUES (user_id_arg, chat_uuid_arg)
+    
+    RETURN FALSE
+  END IF;
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog;
 
 -- Load all messages for a specific chat, ordered by creation time
-CREATE OR REPLACE FUNCTION load_chat_messages(chat_id_arg INTEGER)
+CREATE OR REPLACE FUNCTION load_chat_messages(chat_uuid_arg INTEGER)
 RETURNS TABLE (
   id TEXT,
   chat_id INTEGER,
@@ -159,7 +168,7 @@ BEGIN
     m.content,
     m.created_at
   FROM messages m
-  WHERE m.chat_id = chat_id_arg
+  WHERE m.chat_id = chat_uuid_arg
   ORDER BY m.created_at ASC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -168,7 +177,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- save bot user and assistant message pair
 CREATE OR REPLACE FUNCTION save_message_pair(
   user_id_arg UUID,
-  chat_id_arg INTEGER,
+  chat_id_arg UUID,
   user_msg_id TEXT,
   user_content JSONB,
   assistant_msg_id TEXT,
@@ -184,12 +193,51 @@ BEGIN
   -- Update the chat's updated_at timestamp
   UPDATE chats
   SET updated_at = NOW()
-  WHERE id = chat_id_arg;
+  WHERE chat_uuid = chat_id_arg;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
-
+-- Get the newest chats using keyset pagination
+CREATE OR REPLACE FUNCTION get_chats_paginated(
+  user_id_arg UUID,
+  cursor_created_at TIMESTAMPTZ DEFAULT NULL,
+  cursor_chat_uuid UUID DEFAULT NULL,
+  page_size INTEGER DEFAULT 20
+)
+RETURNS TABLE (
+  chat_uuid UUID,
+  user_id UUID,
+  title TEXT,
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    c.chat_uuid,
+    c.user_id,
+    c.title,
+    c.created_at,
+    c.updated_at
+  FROM chats c
+  WHERE 
+    c.user_id = user_id_arg
+    AND (
+      -- First page: no cursor provided
+      cursor_created_at IS NULL
+      OR
+      -- Subsequent pages: use keyset pagination
+      -- Get chats older than the cursor
+      (c.created_at < cursor_created_at)
+      OR
+      -- Handle ties: if created_at is equal, use chat_uuid for stable ordering
+      (c.created_at = cursor_created_at AND c.chat_uuid < cursor_chat_uuid)
+    )
+  ORDER BY c.created_at DESC, c.chat_uuid DESC
+  LIMIT page_size;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
 -------------------end-functions-----------------------------------------------------------------------------------------

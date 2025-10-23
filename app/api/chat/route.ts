@@ -42,16 +42,12 @@ export async function POST(request: NextRequest) {
       await request.json(); // validate body safeParse, see habits for alzheimer
     const message = messages[messages.length - 1];
     console.log("id: ", id);
-    let currentChatId = Number(id);
+    const currentChatId = id
     console.log("id: ", currentChatId);
     // if there is no ChatId we need to create a new entry in the database
-    if (!currentChatId) {
-      console.log("no chat id so we create one in the database");
-      const { data: chatIdFromDB, error: chatIdFromDBError } =
-        await supabase.rpc("create_chat", { user_id_arg: user.id });
-      if (chatIdFromDBError) throw chatIdFromDBError;
-      currentChatId = chatIdFromDB;
-    }
+    const { data: doesChatExist, error: doesChatExistError } = await supabase.rpc("get_or_create_chat", { user_id_arg: user.id, chat_id_arg: currentChatId });
+    if (doesChatExistError) { throw doesChatExistError }
+
 
     const { data: previousMessages, error: loadError } = await supabase.rpc(
       "load_chat_messages",
@@ -81,8 +77,8 @@ export async function POST(request: NextRequest) {
       execute: async ({ writer }) => {
         // Send chatId as transient data
         writer.write({
-          type: "data-chatId",
-          data: { chatId: currentChatId },
+          type: "data-doesChatExist", //data-chatId
+          data: { doesChatExist: doesChatExist },
           transient: true,
         });
 

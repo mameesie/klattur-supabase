@@ -1,5 +1,5 @@
 'use client'
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import ChatBox from "../components/ChatBox";
 import SidePanel from "@/public/svg/sidePanel";
@@ -9,10 +9,17 @@ import { v4 as uuidv4 } from 'uuid';
 
 function ChatPage() {
   const [sidePanelOut, setSidePanelOut] = useState(false);
+  const [loadedChats, setLoadedChats] = useState(false);
   const setCurrentChatObject = useChatStore(
       (state: ChatStore) => state.setChatObject
     );
 
+useEffect(() => {
+    const getChats = async () => {
+      const chats = await fetch("/api/getChats")
+    }
+    getChats()
+},[])
 
   return (
   <div className="flex min-h-full bg-pink-mid">
@@ -29,7 +36,11 @@ function ChatPage() {
           <button onClick={() => {
             const newChatId = uuidv4()
             setCurrentChatObject(newChatId)
-          }}>begin een nieuw gesprek</button>
+          }}>begin een nieuw gesprek
+          </button>
+          <div className="flex flex-col">
+            {}
+          </div>
         </div>
       </div>
     ) : (
