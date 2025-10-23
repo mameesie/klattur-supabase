@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
 import Arrow from "@/public/svg/arrow";
-import { DefaultChatTransport, UIDataTypes, UIMessage, UITools } from "ai";
+import { UIDataTypes, UIMessage, UITools } from "ai";
 import { ChatStore, useChatStore } from "@/store/useStore";
 
 interface props {
@@ -42,23 +42,21 @@ const ChatBox = ( {messages, sendMessage} :props) => {
     }
   }, [input]);
 
-  useEffect(() => {
-    console.log(messages);
-
-    // Check if the last message is from assistant and still streaming
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      const lastPart = lastMessage.parts[1];
-
-      // Type guard to check if it's a text part with state
-      if (lastPart && "state" in lastPart && lastPart.state === "done") {
-        setIsStreaming(false);
+useEffect(() => {
+  if (messages.length > 0) {
+    const lastMessage = messages[messages.length - 1];
+    
+    // Check if last message is from assistant
+    if (lastMessage.role === "assistant") {
+      const lastPart = lastMessage.parts[lastMessage.parts.length - 1]; // Get last part
+      
+      // Check if streaming is still in progress
+      if (lastPart && "state" in lastPart) {
+        setIsStreaming(lastPart.state !== "done");
       }
-    } else if (isStreaming) {
-      // Only update if currently streaming
-      setIsStreaming(false);
     }
-  }, [messages, isStreaming]);
+  }
+}, [messages]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

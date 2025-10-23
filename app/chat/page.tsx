@@ -45,8 +45,14 @@ function ChatPage() {
         console.log("does chat exist: ", doesChatExist);
         // add chat to ui
         if (!doesChatExist) {
-          const newChat = {chat_uuid: chatId, user_id: "1", title: title, created_at: new Date().toISOString(), updated_at: new Date().toISOString()};  
-          console.log("newchat: ",newChat)
+          const newChat = {
+            chat_uuid: chatId,
+            user_id: "1",
+            title: title,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          console.log("newchat: ", newChat);
           setLoadedChats((prevChats) => [newChat, ...prevChats]);
         }
         // if (newChatId && !currentChatId) {
@@ -62,11 +68,11 @@ function ChatPage() {
       try {
         setIsLoadingMessages(true);
         // Build URL with query parameters using URLSearchParams
-      const params = new URLSearchParams({
-        chatUUID: currentChatId,
-      });
+        const params = new URLSearchParams({
+          chatUUID: currentChatId,
+        });
 
-      const response = await fetch(`/api/getMessages?${params.toString()}`);;
+        const response = await fetch(`/api/getMessages?${params.toString()}`);
         if (!response.ok) {
           throw new Error("Laden van berichten is mislukt");
         }
@@ -92,7 +98,7 @@ function ChatPage() {
         }
         const chats = await response.json();
         console.log("chats: ", chats);
-        
+
         setLoadedChats(chats);
 
         setHasMore(chats.length === 20); // if there are 20 chats it means there are more
@@ -137,6 +143,46 @@ function ChatPage() {
     }
   };
 
+  // Add this helper function at the top of your component, after the imports
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Reset time parts for comparison
+    today.setHours(0, 0, 0, 0);
+    yesterday.setHours(0, 0, 0, 0);
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+
+    if (compareDate.getTime() === today.getTime()) {
+      return "Vandaag";
+    } else if (compareDate.getTime() === yesterday.getTime()) {
+      return "Gisteren";
+    } else {
+      return date.toLocaleDateString("nl-NL", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    }
+  }
+
+  function groupChatsByDate(chats: ChatsType[]) {
+    const groups: { [key: string]: ChatsType[] } = {};
+
+    chats.forEach((chat) => {
+      const dateKey = new Date(chat.created_at).toDateString();
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(chat);
+    });
+
+    return groups;
+  }
+
   return (
     <div className="flex min-h-full bg-pink-mid">
       {sidePanelOut ? (
@@ -159,15 +205,24 @@ function ChatPage() {
               begin een nieuw gesprek
             </button>
             <div className="flex flex-col">
-              {loadedChats.map((chat) => (
-                <button
-                  key={chat.chat_uuid}
-                  onClick={() => setCurrentChatObject(chat.chat_uuid)}
-                  className="p-2 hover:bg-pink-mid text-left"
-                >
-                  {chat.title}
-                </button>
-              ))}
+              {Object.entries(groupChatsByDate(loadedChats)).map(
+                ([dateKey, chats]) => (
+                  <div key={dateKey}>
+                    <div className="px-2 py-3 text-sm font-semibold text-gray-600">
+                      {formatDate(chats[0].created_at)}
+                    </div>
+                    {chats.map((chat) => (
+                      <button
+                        key={chat.chat_uuid}
+                        onClick={() => setCurrentChatObject(chat.chat_uuid)}
+                        className="p-2 hover:bg-pink-mid text-left w-full"
+                      >
+                        {chat.title}
+                      </button>
+                    ))}
+                  </div>
+                )
+              )}
               {hasMore && !isLoading && loadedChats.length > 0 && (
                 <button
                   onClick={loadMoreChats}
