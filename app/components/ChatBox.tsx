@@ -6,26 +6,26 @@ import { useState } from "react";
 import Arrow from "@/public/svg/arrow";
 import { UIDataTypes, UIMessage, UITools } from "ai";
 import { ChatStore, useChatStore } from "@/store/useStore";
-
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 interface props {
   sendMessage: (message: { text: string }) => void;
   messages: UIMessage<unknown, UIDataTypes, UITools>[];
+  isLoadingMessages: boolean;
 }
 
-
-const ChatBox = ( {messages, sendMessage} :props) => {
+const ChatBox = ({ messages, sendMessage, isLoadingMessages }: props) => {
   const [input, setInput] = useState("");
   const setCurrentChatObject = useChatStore(
     (state: ChatStore) => state.setChatObject
   );
-  const currentChatId = useChatStore((state: ChatStore) => state.chatObject.currentChatId);
-
+  const currentChatId = useChatStore(
+    (state: ChatStore) => state.chatObject.currentChatId
+  );
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
-
-
 
   useEffect(() => {
     // used to not overflow textarea when there is more text
@@ -42,21 +42,21 @@ const ChatBox = ( {messages, sendMessage} :props) => {
     }
   }, [input]);
 
-useEffect(() => {
-  if (messages.length > 0) {
-    const lastMessage = messages[messages.length - 1];
-    
-    // Check if last message is from assistant
-    if (lastMessage.role === "assistant") {
-      const lastPart = lastMessage.parts[lastMessage.parts.length - 1]; // Get last part
-      
-      // Check if streaming is still in progress
-      if (lastPart && "state" in lastPart) {
-        setIsStreaming(lastPart.state !== "done");
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+
+      // Check if last message is from assistant
+      if (lastMessage.role === "assistant") {
+        const lastPart = lastMessage.parts[lastMessage.parts.length - 1]; // Get last part
+
+        // Check if streaming is still in progress
+        if (lastPart && "state" in lastPart) {
+          setIsStreaming(lastPart.state !== "done");
+        }
       }
     }
-  }
-}, [messages]);
+  }, [messages]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -73,7 +73,20 @@ useEffect(() => {
         style={{ width: "calc(100% - 60px)" }}
         className=" max-w-[690px]  bg-pink-dark flex-1 pl-[10px] pr-[10px] pt-[10px] pb-[10px] "
       >
-        {
+        {isLoadingMessages ? (
+          <div className="flex flex-col p-[10px]">
+            <Skeleton
+              count={6}
+              style={{ marginBottom: '20px', rounded: '10px' }}
+              borderRadius="20px"  // Match your message bubbles
+
+              height={70}
+              baseColor="#F6EBE2" // Light pink base
+              highlightColor="#ffffff" // Even lighter pink for shimmer
+            />
+          </div>
+        ) : ( 
+          <>
           <div className="flex justify-start">
             <div
               key="id-1-1"
@@ -87,52 +100,55 @@ useEffect(() => {
               </div>
             </div>
           </div>
-        }
-        {messages.map((message) => (
-          <div
-            key={`${message.id}-1`}
-            className={`flex ${
-              message.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
+        
+        
+          {messages.map((message) => (
             <div
-              key={message.id}
-              className=" rounded-[20px] inline-flex overflow-hidden p-[15px] m-[10px] bg-pink-light items-center"
+              key={`${message.id}-1`}
+              className={`flex ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
             >
-              {/* whitespace-pre-wrap */}
-              {/*message.role === "user" ? "User: " : "AI: "*/}
-              {message.role === "assistant" ? (
-                <div
-                  className={`bg-red-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
-                ></div>
-              ) : (
-                <div></div>
-              )}
-              {message.parts.map((part, i) => {
-                switch (part.type) {
-                  case "text":
-                    return (
-                      <div
-                        className={`${
-                          message.role === "user" ? "mr-[15px]" : "ml-[15px]"
-                        }`}
-                        key={`${message.id}-${i}`}
-                      >
-                        {part.text}
-                      </div>
-                    );
-                }
-              })}
-              {message.role === "user" ? (
-                <div
-                  className={`bg-blue-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
-                ></div>
-              ) : (
-                <div></div>
-              )}
+              <div
+                key={message.id}
+                className=" rounded-[20px] inline-flex overflow-hidden p-[15px] m-[10px] bg-pink-light items-center"
+              >
+                {/* whitespace-pre-wrap */}
+                {/*message.role === "user" ? "User: " : "AI: "*/}
+                {message.role === "assistant" ? (
+                  <div
+                    className={`bg-red-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
+                  ></div>
+                ) : (
+                  <div></div>
+                )}
+                {message.parts.map((part, i) => {
+                  switch (part.type) {
+                    case "text":
+                      return (
+                        <div
+                          className={`${
+                            message.role === "user" ? "mr-[15px]" : "ml-[15px]"
+                          }`}
+                          key={`${message.id}-${i}`}
+                        >
+                          {part.text}
+                        </div>
+                      );
+                  }
+                })}
+                {message.role === "user" ? (
+                  <div
+                    className={`bg-blue-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
+                  ></div>
+                ) : (
+                  <div></div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </>
+      )}
       </div>
       <div className="sticky bottom-0 flex justify-center items-center w-full ">
         <div
@@ -157,7 +173,6 @@ useEffect(() => {
               className="bg-yellow-button min-w-[40px] h-[40px] rounded-[10px] flex justify-center items-center"
               type="submit"
             >
-              
               {isStreaming ? (
                 <div className="w-[15px] h-[15px] bg-white rounded-[5px] animate-grow" />
               ) : (

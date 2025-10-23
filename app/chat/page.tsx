@@ -113,6 +113,8 @@ function ChatPage() {
     getChats();
   }, []);
 
+
+
   const loadMoreChats = async () => {
     if (loadedChats.length === 0 || isLoading || !hasMore) return;
 
@@ -147,43 +149,44 @@ function ChatPage() {
 
   // Helper function to show what date the chat was created
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+  console.log("dateString: ", dateString);
+  const date = new Date(dateString);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
 
-    // Reset time parts for comparison
-    today.setHours(0, 0, 0, 0);
-    yesterday.setHours(0, 0, 0, 0);
-    const compareDate = new Date(date);
-    compareDate.setHours(0, 0, 0, 0);
+  // Compare using local date strings (YYYY-MM-DD format)
+  const dateStr = date.toLocaleDateString('en-CA'); // ISO format YYYY-MM-DD
+  const todayStr = today.toLocaleDateString('en-CA');
+  const yesterdayStr = yesterday.toLocaleDateString('en-CA');
 
-    if (compareDate.getTime() === today.getTime()) {
-      return "Vandaag";
-    } else if (compareDate.getTime() === yesterday.getTime()) {
-      return "Gisteren";
-    } else {
-      return date.toLocaleDateString("nl-NL", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-    }
-  }
-
-  function groupChatsByDate(chats: ChatsType[]) {
-    const groups: { [key: string]: ChatsType[] } = {};
-
-    chats.forEach((chat) => {
-      const dateKey = new Date(chat.created_at).toDateString();
-      if (!groups[dateKey]) {
-        groups[dateKey] = [];
-      }
-      groups[dateKey].push(chat);
+  if (dateStr === todayStr) {
+    return "Vandaag";
+  } else if (dateStr === yesterdayStr) {
+    return "Gisteren";
+  } else {
+    return date.toLocaleDateString("nl-NL", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
-
-    return groups;
   }
+}
+
+function groupChatsByDate(chats: ChatsType[]) {
+  const groups: { [key: string]: ChatsType[] } = {};
+
+  chats.forEach((chat) => {
+    const date = new Date(chat.created_at);
+    const dateKey = date.toLocaleDateString('en-CA'); // Use ISO format as key
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    groups[dateKey].push(chat);
+  });
+
+  return groups;
+}
 
   return (
     <div className="flex min-h-full bg-pink-mid">
@@ -253,7 +256,7 @@ function ChatPage() {
           </div>
         </div>
       )}
-      <ChatBox messages={messages} sendMessage={sendMessage} />
+      <ChatBox isLoadingMessages={isLoadingMessages} messages={messages} sendMessage={sendMessage} />
     </div>
   );
 }
