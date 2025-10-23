@@ -18,3 +18,7 @@
 .bg-pink-dark {
   background-color: #F8D8C2;
 }
+
+.hover\:bg-pink-mid:hover {
+  background-color: #F3DFD2;
+}

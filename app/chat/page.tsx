@@ -7,6 +7,7 @@ import { ChatStore, useChatStore } from "@/store/useStore";
 import { v4 as uuidv4 } from "uuid";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import "@/app/globals.css";
 
 interface ChatsType {
   chat_uuid: string;
@@ -21,6 +22,7 @@ function ChatPage() {
   const [loadedChats, setLoadedChats] = useState<ChatsType[]>([]);
   const [hasMore, setHasMore] = useState(true); // Track if more chats exist
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const currentChatId = useChatStore(
     (state: ChatStore) => state.chatObject.currentChatId
@@ -143,7 +145,7 @@ function ChatPage() {
     }
   };
 
-  // Add this helper function at the top of your component, after the imports
+  // Helper function to show what date the chat was created
   function formatDate(dateString: string): string {
     const date = new Date(dateString);
     const today = new Date();
@@ -197,9 +199,11 @@ function ChatPage() {
           </div>
           <div>
             <button
+             className="cursor-pointer"
               onClick={() => {
                 const newChatId = uuidv4();
                 setCurrentChatObject(newChatId);
+                setSelectedChat(newChatId);
               }}
             >
               begin een nieuw gesprek
@@ -214,8 +218,10 @@ function ChatPage() {
                     {chats.map((chat) => (
                       <button
                         key={chat.chat_uuid}
-                        onClick={() => setCurrentChatObject(chat.chat_uuid)}
-                        className="p-2 hover:bg-pink-mid text-left w-full"
+                        onClick={() =>{ 
+                          setSelectedChat(chat.chat_uuid)
+                          setCurrentChatObject(chat.chat_uuid)}}
+                        className={`${ selectedChat === chat.chat_uuid ? "bg-pink-mid" : ""} p-2 hover:bg-pink-mid cursor-pointer text-left w-full rounded-[15px]`}
                       >
                         {chat.title}
                       </button>
@@ -234,6 +240,7 @@ function ChatPage() {
             </div>
           </div>
         </div>
+        // VV show when sidePanel is closed 
       ) : (
         <div className="absolute md:relative md:flex-col rounded-br-[20px] md:rounded-br-[0px] w-[50px] flex-shrink-0 bg-pink-light z-50">
           <div className="flex justify-center p-[15px]">
