@@ -4,6 +4,8 @@ import React, { useEffect, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
 import Arrow from "@/public/svg/arrow";
+import ChatAssistant from "@/public/svg/chatAssistant";
+import ChatUser from "@/public/svg/chatUser";
 import { UIDataTypes, UIMessage, UITools } from "ai";
 import { ChatStore, useChatStore } from "@/store/useStore";
 import Skeleton from "react-loading-skeleton";
@@ -40,7 +42,7 @@ const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName }: props) 
 
       // Adjust container height based on textarea
       containerRef.current.style.height = `${
-        textareaRef.current.scrollHeight + 10
+        textareaRef.current.scrollHeight + 40
       }px`;
     }
   }, [input]);
@@ -96,8 +98,10 @@ const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName }: props) 
               className=" rounded-[20px] inline-flex overflow-hidden p-[15px] m-[10px] bg-pink-light items-center"
             >
               <div
-                className={`bg-red-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
-              ></div>
+                className={`h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
+              >
+                <ChatAssistant/>
+              </div>
               <div className="ml-[15px]">
                 Hi {userName}, Wat is er aan de hand, waar zit je mee?
               </div>
@@ -120,8 +124,10 @@ const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName }: props) 
                 {/*message.role === "user" ? "User: " : "AI: "*/}
                 {message.role === "assistant" ? (
                   <div
-                    className={`bg-red-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
-                  ></div>
+                    className={` h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
+                  >
+                    <ChatAssistant/>
+                  </div>
                 ) : (
                   <div></div>
                 )}
@@ -142,8 +148,10 @@ const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName }: props) 
                 })}
                 {message.role === "user" ? (
                   <div
-                    className={`bg-blue-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
-                  ></div>
+                    className={` h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
+                  >
+                    <ChatUser/>
+                  </div>
                 ) : (
                   <div></div>
                 )}

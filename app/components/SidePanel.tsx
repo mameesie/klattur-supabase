@@ -25,7 +25,7 @@ interface props {
 }
 
 function SidePanel({ userName }: props) {
-  const [sidePanelOut, setSidePanelOut] = useState(true);
+  const [sidePanelOut, setSidePanelOut] = useState(false);
   const [loadedChats, setLoadedChats] = useState<ChatsType[]>([]);
   const [hasMore, setHasMore] = useState(true); // Track if more chats exist
   const [isLoading, setIsLoading] = useState(false);
@@ -220,6 +220,7 @@ function SidePanel({ userName }: props) {
               const newChatId = uuidv4();
               setCurrentChatObject(newChatId);
               setSelectedChat(newChatId);
+                
             }}
           >
             <div className=" w-[20px]">
@@ -232,8 +233,11 @@ function SidePanel({ userName }: props) {
             <div className="flex flex-col overflow-y-auto max-h-[calc(100vh-230px)]">
               {isLoading ? (
                 <Skeleton
+                  style={{ marginLeft: '10px'}}
+                  width={280}
                   count={18}
                   height={35}
+                
                   borderRadius="20px"
                   baseColor="#F3DFD2"
                   highlightColor="#F6EBE2"
