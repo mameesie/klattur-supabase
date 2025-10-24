@@ -253,8 +253,8 @@ function SidePanel({ userName }: props) {
                             setCurrentChatObject(chat.chat_uuid);
                           }}
                           className={`${
-                            selectedChat === chat.chat_uuid ? "bg-pink-mid" : ""
-                          }pl-[20px] py-[5px] hover:bg-pink-mid cursor-pointer text-left w-full rounded-[15px]`}
+                            selectedChat === chat.chat_uuid ? "bg-pink-mid " : ""
+                          } max-w-[280px] overflow-x-hidden whitespace-nowrap ml-[10px] px-[10px] py-[5px] hover:bg-pink-mid cursor-pointer text-left rounded-[7px]`}
                         >
                           {chat.title}
                         </button>
@@ -287,7 +287,7 @@ function SidePanel({ userName }: props) {
           </div>
         </div>
       )}
-      {sidePanelOut && <div className="relative md:min-w-[300px]"></div>}
+      <div className={`${sidePanelOut ? "md:min-w-[300px]" : "md:min-w-[50px]"} `}></div>
       <ChatBox
         isLoadingMessages={isLoadingMessages}
         messages={messages}
