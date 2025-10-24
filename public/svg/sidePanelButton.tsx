@@ -1,5 +1,5 @@
 import * as React from "react"
-const SidePanel = (props) => (
+const SidePanelButton = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     xmlSpace="preserve"
@@ -17,7 +17,7 @@ const SidePanel = (props) => (
       style={{
         fill: "none",
         fillRule: "nonzero",
-        stroke: "#000",
+        stroke: "#4C7D89",
         strokeWidth: 3,
       }}
       transform="translate(133.936 8.764) scale(5.55556)"
@@ -27,7 +27,7 @@ const SidePanel = (props) => (
       style={{
         fill: "none",
         fillRule: "nonzero",
-        stroke: "#000",
+        stroke: "#4C7D89",
         strokeWidth: 3,
         strokeLinecap: "butt",
       }}
@@ -35,4 +35,4 @@ const SidePanel = (props) => (
     />
   </svg>
 )
-export default SidePanel
+export default SidePanelButton

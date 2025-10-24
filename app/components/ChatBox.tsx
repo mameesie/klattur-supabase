@@ -8,13 +8,15 @@ import { UIDataTypes, UIMessage, UITools } from "ai";
 import { ChatStore, useChatStore } from "@/store/useStore";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import { getUser } from "@/supabase/auth/server";
 interface props {
   sendMessage: (message: { text: string }) => void;
   messages: UIMessage<unknown, UIDataTypes, UITools>[];
   isLoadingMessages: boolean;
+  userName: string
 }
 
-const ChatBox = ({ messages, sendMessage, isLoadingMessages }: props) => {
+const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName }: props) => {
   const [input, setInput] = useState("");
   const setCurrentChatObject = useChatStore(
     (state: ChatStore) => state.setChatObject
@@ -27,6 +29,7 @@ const ChatBox = ({ messages, sendMessage, isLoadingMessages }: props) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
 
+  
   useEffect(() => {
     // used to not overflow textarea when there is more text
 
@@ -77,7 +80,7 @@ const ChatBox = ({ messages, sendMessage, isLoadingMessages }: props) => {
           <div className="flex flex-col p-[10px]">
             <Skeleton
               count={6}
-              style={{ marginBottom: '20px', rounded: '10px' }}
+              style={{ marginBottom: '20px' }}
               borderRadius="20px"  // Match your message bubbles
 
               height={70}
@@ -96,7 +99,7 @@ const ChatBox = ({ messages, sendMessage, isLoadingMessages }: props) => {
                 className={`bg-red-300 h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
               ></div>
               <div className="ml-[15px]">
-                Hi! Wat is er aan de hand, waar zit je mee?
+                Hi {userName}, Wat is er aan de hand, waar zit je mee?
               </div>
             </div>
           </div>

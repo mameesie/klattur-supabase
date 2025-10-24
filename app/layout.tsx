@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner"
 import Header from "./components/Header";
 import Providers from "./provider";
+import localFont from "next/font/local";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,6 +16,11 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const open_sans_regular = localFont({
+  src: "../public/fonts/OpenSans-Regular.ttf",
+  variable: "--font-open-sans-regular",
+})
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -29,7 +36,7 @@ export default function RootLayout({
     <html lang="en">
       <body
       
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${open_sans_regular.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
         
@@ -45,3 +52,4 @@ export default function RootLayout({
     </html>
   );
 }
+
