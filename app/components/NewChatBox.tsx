@@ -52,8 +52,8 @@ function NewChatBox({userName, sendMessage, setIsStreaming, isStreaming}: props)
         style={{ width: "calc(100% - 60px)" }}
         className=" max-w-[690px]  bg-pink-dark flex-1 pl-[10px] pr-[10px] pt-[10px] pb-[10px] "
       >
-        <div className="flex flex-col items-center h-full justify-center pb-[199px] text-center">
-            <h1 className="text-3xl max-w-[500px] mb-[30px]">Hi {userName}, Wat is er aan de hand, waar zit je mee?</h1>
+        <div className="flex flex-col items-center h-full text-center">
+            <h1 className="text-3xl max-w-[500px] mb-[30px] mt-[100px]">Hi {userName}, Wat is er aan de hand, waar zit je mee?</h1>
            <div
           ref={containerRef}
           className="bg-white min-h-[95px] w-full max-w-[500px] mx-[10px] flex justify-center items-center rounded-[20px]"
