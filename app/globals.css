@@ -5,7 +5,8 @@
 
 body {
   font-family: var(--font-open-sans-regular);
-  color: #4C7D89
+  color: #4C7D89;
+  background-color: #F3DFD2;
 }
 
 .bg-yellow-button {
@@ -39,4 +40,17 @@ body {
 
 .font-open-sans-regular {
   font-family: var(--font-open-sans-regular);
+}
+h2 {
+   width: 100%; 
+   
+   text-align: center; 
+   border-bottom: 1px solid #4C7D89;
+   line-height: 0.1em;
+   margin: 10px 0 20px; 
+} 
+
+h2 span { 
+    background:#F8D8C2;
+    padding:0 10px; 
 }

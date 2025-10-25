@@ -20,10 +20,10 @@ async function Header() {
             }
           ></DropDownMenu>
         ) : (
-          <>
-            <a href="/login">Login</a>
-            <a href="/signup">Sign up</a>
-          </>
+          <div className="flex">
+            <a className="cursor-pointer" href="/login">Login</a>
+            <a className="cursor-pointer mx-[10px]"  href="/signup">Aanmelden</a>
+          </div>
         )}
       
     </div>
