@@ -284,7 +284,7 @@ function SidePanel({ userName }: props) {
               </button>
             )}
           </div>
-          <p className="text-[12px] ml-[20px] mt-[6px]">&#169; The Work by Byron Katie</p>
+          <p className="absolute bottom-2 text-[12px] ml-[20px] mt-[6px]">&#169; The Work by Byron Katie</p>
         </div>
       ) : (
         // VV show when sidePanel is closed
