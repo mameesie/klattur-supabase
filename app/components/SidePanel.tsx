@@ -220,7 +220,7 @@ function SidePanel({ userName }: props) {
           </div>
 
           <button
-            className="cursor-pointer flex justify-start ml-[20px] items-center mb-[40px]"
+            className="cursor-pointer flex justify-start ml-[20px] items-center mb-[30px]"
             onClick={() => {
               const newChatId = uuidv4();
               setCurrentChatObject(newChatId, true);
@@ -249,7 +249,7 @@ function SidePanel({ userName }: props) {
               Object.entries(groupChatsByDate(loadedChats)).map(
                 ([dateKey, chats]) => (
                   <div key={dateKey}>
-                    <div className="pl-[20px] pb-[5px] font-semibold">
+                    <div className="pl-[20px] pt-[10px] pb-[5px] font-semibold">
                       {formatDate(chats[0].created_at)}
                     </div>
                     {chats.map((chat) => (
