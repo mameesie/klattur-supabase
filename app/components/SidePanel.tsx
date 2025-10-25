@@ -11,6 +11,7 @@ import "@/app/globals.css";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import NewChat from "@/public/svg/newChat";
+import NewChatBox from "./NewChatBox";
 
 interface ChatsType {
   chat_uuid: string;
@@ -33,6 +34,9 @@ function SidePanel({ userName }: props) {
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const currentChatId = useChatStore(
     (state: ChatStore) => state.chatObject.currentChatId
+  );
+  const isNewChat = useChatStore(
+    (state: ChatStore) => state.chatObject.isNewChat
   );
 
   const setCurrentChatObject = useChatStore(
@@ -75,15 +79,15 @@ function SidePanel({ userName }: props) {
   useEffect(() => {
     const getMessages = async () => {
       try {
-        // Check if this is a new bc it is not in loadedChats yet
-        const isNewChat = !loadedChats.some(
-          (chat) => chat.chat_uuid === currentChatId
-        );
+        // // Check if this is a new bc it is not in loadedChats yet
+        // const isNewChat = !loadedChats.some(
+        //   (chat) => chat.chat_uuid === currentChatId
+        // );
         if (isNewChat) {
           setMessages([]); // Clear messages for new chat
           return;
         }
-        setIsLoadingMessages(true);
+        //setIsLoadingMessages(true);
         // Build URL with query parameters using URLSearchParams
         const params = new URLSearchParams({
           chatUUID: currentChatId,
@@ -218,9 +222,8 @@ function SidePanel({ userName }: props) {
             className="cursor-pointer flex justify-start ml-[20px] items-center mb-[40px]"
             onClick={() => {
               const newChatId = uuidv4();
-              setCurrentChatObject(newChatId);
+              setCurrentChatObject(newChatId, true);
               setSelectedChat(newChatId);
-                
             }}
           >
             <div className=" w-[20px]">
@@ -229,53 +232,52 @@ function SidePanel({ userName }: props) {
 
             <p className="ml-[5px]">Nieuw gesprek</p>
           </button>
-         
-            <div className="flex flex-col overflow-y-auto max-h-[calc(100vh-230px)]">
-              {isLoading ? (
-                <Skeleton
-                  style={{ marginLeft: '10px'}}
-                  width={280}
-                  count={18}
-                  height={35}
-                
-                  borderRadius="20px"
-                  baseColor="#F3DFD2"
-                  highlightColor="#F6EBE2"
-                />
-              ) : (
-                Object.entries(groupChatsByDate(loadedChats)).map(
-                  ([dateKey, chats]) => (
-                    <div key={dateKey}>
-                      <div className="pl-[20px] pb-[5px] font-semibold">
-                        {formatDate(chats[0].created_at)}
-                      </div>
-                      {chats.map((chat) => (
-                        <button
-                          key={chat.chat_uuid}
-                          onClick={() => {
-                            setSelectedChat(chat.chat_uuid);
-                            setCurrentChatObject(chat.chat_uuid);
-                          }}
-                          className={`${
-                            selectedChat === chat.chat_uuid ? "bg-pink-mid " : ""
-                          } max-w-[280px] overflow-x-hidden whitespace-nowrap ml-[10px] px-[10px] py-[5px] hover:bg-pink-mid cursor-pointer text-left rounded-[7px]`}
-                        >
-                          {chat.title}
-                        </button>
-                      ))}
+
+          <div className="flex flex-col overflow-y-auto max-h-[calc(100vh-230px)]">
+            {isLoading ? (
+              <Skeleton
+                style={{ marginLeft: "10px" }}
+                width={280}
+                count={18}
+                height={35}
+                borderRadius="20px"
+                baseColor="#F3DFD2"
+                highlightColor="#F6EBE2"
+              />
+            ) : (
+              Object.entries(groupChatsByDate(loadedChats)).map(
+                ([dateKey, chats]) => (
+                  <div key={dateKey}>
+                    <div className="pl-[20px] pb-[5px] font-semibold">
+                      {formatDate(chats[0].created_at)}
                     </div>
-                  )
+                    {chats.map((chat) => (
+                      <button
+                        key={chat.chat_uuid}
+                        onClick={() => {
+                          setSelectedChat(chat.chat_uuid);
+                          setCurrentChatObject(chat.chat_uuid, false);
+                          setIsLoadingMessages(true);
+                        }}
+                        className={`${
+                          selectedChat === chat.chat_uuid ? "bg-pink-mid " : ""
+                        } max-w-[280px] overflow-x-hidden whitespace-nowrap ml-[10px] px-[10px] py-[5px] hover:bg-pink-mid cursor-pointer text-left rounded-[7px]`}
+                      >
+                        {chat.title}
+                      </button>
+                    ))}
+                  </div>
                 )
-              )}
-              {hasMore && !isLoading && loadedChats.length > 0 && (
-                <button
-                  onClick={loadMoreChats}
-                  className="p-2 text-sm text-gray-600 hover:bg-pink-mid"
-                >
-                  Load more...
-                </button>
-              )}
-            
+              )
+            )}
+            {hasMore && !isLoading && loadedChats.length > 0 && (
+              <button
+                onClick={loadMoreChats}
+                className="p-2 text-sm text-gray-600 hover:bg-pink-mid"
+              >
+                Load more...
+              </button>
+            )}
           </div>
         </div>
       ) : (
@@ -291,13 +293,20 @@ function SidePanel({ userName }: props) {
           </div>
         </div>
       )}
-      <div className={`${sidePanelOut ? "md:min-w-[300px]" : "md:min-w-[50px]"} `}></div>
-      <ChatBox
-        isLoadingMessages={isLoadingMessages}
-        messages={messages}
-        sendMessage={sendMessage}
-        userName={userName}
-      />
+      <div
+        className={`${sidePanelOut ? "md:min-w-[300px]" : "md:min-w-[50px]"} `}
+      ></div>
+
+      {isNewChat ? (
+        <NewChatBox />
+      ) : (
+        <ChatBox
+          isLoadingMessages={isLoadingMessages}
+          messages={messages}
+          sendMessage={sendMessage}
+          userName={userName}
+        />
+      )}
     </div>
   );
 }

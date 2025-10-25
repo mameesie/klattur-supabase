@@ -26,7 +26,9 @@ const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName }: props) 
   const currentChatId = useChatStore(
     (state: ChatStore) => state.chatObject.currentChatId
   );
-
+const isNewChat = useChatStore(
+    (state: ChatStore) => state.chatObject.isNewChat
+  );
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -78,6 +80,7 @@ const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName }: props) 
         style={{ width: "calc(100% - 60px)" }}
         className=" max-w-[690px]  bg-pink-dark flex-1 pl-[10px] pr-[10px] pt-[10px] pb-[10px] "
       >
+        
         {isLoadingMessages ? (
           <div className="flex flex-col p-[10px]">
             <Skeleton
@@ -202,7 +205,7 @@ const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName }: props) 
             console.log("current chat object", currentChatId)
             }}>setcurrentchat object</button> */}
         </div>
-      </div>
+      </div> 
       <style jsx>{`
         @keyframes grow {
           0%,

@@ -109,12 +109,12 @@ function LoginForm() {
   };
   return (
     <div className="flex flex-col items-center bg-pink-mid">
-      <div className="w-[350px] rounded-[20px] flex flex-col items-center bg-pink-dark mt-[50px]">
+      <div className="w-[350px] rounded-[20px] flex flex-col items-center bg-pink-dark mt-[70px]">
         <h1 className="font-semibold mt-[10px] ">Welkom terug</h1>
         <p>Log in met je Google account</p>
         <button
           onClick={handleGoogleLogin}
-          className=" bg-pink-light w-[300px] h-[40px] rounded-[10px] mt-[20px] "
+          className=" bg-pink-light w-[300px] h-[40px] rounded-[10px] mt-[20px] cursor-pointer "
           type="submit"
         >
           GOOGLE
@@ -145,7 +145,7 @@ function LoginForm() {
           </div>
           <input
             {...form.register("email")}
-            className="w-[300px] bg-white rounded-[10px] h-[40px]"
+            className="w-[300px] bg-white rounded-[10px] h-[40px] p-[10px]"
             id="email"
             name="email"
             type="email"
@@ -157,7 +157,7 @@ function LoginForm() {
           </div>
           <input
             {...form.register("password")}
-            className="w-[300px] bg-white rounded-[10px] h-[40px]"
+            className="w-[300px] bg-white rounded-[10px] h-[40px p-[10px]"
             id="password"
             name="password"
             type="password"
@@ -176,7 +176,7 @@ function LoginForm() {
           ></div>
           {error && <div>{error} </div>}
           <button
-            className="bg-pink-light w-[300px] h-[40px] rounded-[10px] mt-[10px] mb-[25px]"
+            className="bg-pink-light w-[300px] h-[40px] rounded-[10px] mt-[10px] mb-[25px] cursor-pointer"
             type="submit"
           >
             {isPending ? (

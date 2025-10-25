@@ -3,15 +3,24 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { create } from 'zustand'  
 
-export type ChatStore = { // create type
-chatObject: {currentChatId:string}; // object
-setChatObject: (id: string) => void; // update function
-
+export type ChatStore = {
+  chatObject: {
+    currentChatId: string;
+    isNewChat: boolean;
+  };
+  setChatObject: (id: string, isNewChat: boolean) => void;
 };
 
-// create store, make a different store per functionality
 export const useChatStore = create<ChatStore>((set) => ({
-chatObject: {currentChatId: uuidv4() },
-setChatObject: (id: string) => set( { chatObject:{ currentChatId: id }}),
-
+  chatObject: {
+    currentChatId: uuidv4(),
+    isNewChat: true
+  },
+  setChatObject: (id: string, isNewChat: boolean) => 
+    set({ 
+      chatObject: { 
+        currentChatId: id,
+        isNewChat: isNewChat
+      }
+    }),
 }));
