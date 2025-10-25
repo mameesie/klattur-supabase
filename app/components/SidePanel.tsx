@@ -258,7 +258,11 @@ function SidePanel({ userName }: props) {
                         onClick={() => {
                           setSelectedChat(chat.chat_uuid);
                           setCurrentChatObject(chat.chat_uuid, false);
-                          setIsLoadingMessages(true);
+                          if (chat.chat_uuid !== currentChatId) {
+                            setIsLoadingMessages(true);
+                            
+                          }
+
                         }}
                         className={`${
                           selectedChat === chat.chat_uuid ? "bg-pink-mid " : ""
