@@ -31,6 +31,7 @@ function SidePanel({ userName }: props) {
   const [hasMore, setHasMore] = useState(true); // Track if more chats exist
   const [isLoading, setIsLoading] = useState(false);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const currentChatId = useChatStore(
     (state: ChatStore) => state.chatObject.currentChatId
@@ -298,9 +299,11 @@ function SidePanel({ userName }: props) {
       ></div>
 
       {isNewChat ? (
-        <NewChatBox />
+        <NewChatBox  userName={userName} sendMessage={sendMessage} setIsStreaming={setIsStreaming} isStreaming={isStreaming}/>
       ) : (
         <ChatBox
+          isStreaming={isStreaming}
+          setIsStreaming={setIsStreaming}
           isLoadingMessages={isLoadingMessages}
           messages={messages}
           sendMessage={sendMessage}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
 import Arrow from "@/public/svg/arrow";
@@ -16,9 +16,11 @@ interface props {
   messages: UIMessage<unknown, UIDataTypes, UITools>[];
   isLoadingMessages: boolean;
   userName: string
+  isStreaming: boolean
+  setIsStreaming: Dispatch<SetStateAction<boolean>>
 }
 
-const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName }: props) => {
+const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName,isStreaming,setIsStreaming }: props) => {
   const [input, setInput] = useState("");
   const setCurrentChatObject = useChatStore(
     (state: ChatStore) => state.setChatObject
@@ -31,7 +33,7 @@ const isNewChat = useChatStore(
   );
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [isStreaming, setIsStreaming] = useState(false);
+  
 
   
   useEffect(() => {
