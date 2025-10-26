@@ -33,6 +33,8 @@ const isNewChat = useChatStore(
   );
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   
 
   
@@ -50,6 +52,11 @@ const isNewChat = useChatStore(
       }px`;
     }
   }, [input]);
+
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -151,6 +158,7 @@ const isNewChat = useChatStore(
                       );
                   }
                 })}
+                <div ref={messagesEndRef}></div>
                 {message.role === "user" ? (
                   <div
                     className={` h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
