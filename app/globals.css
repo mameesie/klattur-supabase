@@ -33,7 +33,6 @@ body {
   background-color: #f8d8c2;
 }
 
-
 .font-no-name-regular {
   font-family: var(--font-no-name-regular);
 }
@@ -57,4 +56,17 @@ h2 {
 h2 span {
   background: #f8d8c2;
   padding: 0 10px;
+}
+
+/* Hide the button by default */
+.hidden-button {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Show it when hovering over the container */
+.trigger-button:hover .hidden-button {
+  opacity: 1;
+  pointer-events: auto;
 }

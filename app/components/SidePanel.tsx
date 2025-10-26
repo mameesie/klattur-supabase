@@ -13,6 +13,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 import NewChat from "@/public/svg/newChat";
 import NewChatBox from "./NewChatBox";
 import PulseLoader from "react-spinners/PulseLoader";
+import ChatPointsMenu from "./ChatPointsMenu";
 
 interface ChatsType {
   chat_uuid: string;
@@ -255,23 +256,26 @@ function SidePanel({ userName }: props) {
                       {formatDate(chats[0].created_at)}
                     </div>
                     {chats.map((chat) => (
-                      <div key={`div-${chat.chat_uuid}`}>
-                        <button
-                          key={chat.chat_uuid}
-                          onClick={() => {
-                            setSelectedChat(chat.chat_uuid);
-                            setCurrentChatObject(chat.chat_uuid, false);
-                            if (chat.chat_uuid !== currentChatId) {
-                              setIsLoadingMessages(true);
+                      <div key={`i-${chat.chat_uuid}`} className="flex">
+                        <div className="ml-[10px] rounded-[7px] inline-block px-[10px] trigger-button hover:bg-pink-mid" key={`div-${chat.chat_uuid}`}>
+                          <button
+                            key={chat.chat_uuid}
+                            onClick={() => {
+                              setSelectedChat(chat.chat_uuid);
+                              setCurrentChatObject(chat.chat_uuid, false);
+                              if (chat.chat_uuid !== currentChatId) {
+                                setIsLoadingMessages(true);
                         
-                            }
-                          }}
-                          className={`${
-                            selectedChat === chat.chat_uuid ? "bg-pink-mid " : ""
-                          } max-w-[280px] overflow-x-hidden whitespace-nowrap ml-[10px] px-[10px] py-[5px] hover:bg-pink-mid cursor-pointer text-left rounded-[7px]`}
-                        >
-                          {chat.title}
-                        </button>
+                              }
+                            }}
+                            className={`${
+                              selectedChat === chat.chat_uuid ? "bg-pink-mid px-[10px] ml-[-10px] rounded-[7px]" : ""
+                            } max-w-[280px] overflow-x-hidden whitespace-nowrap  pr-[10px] py-[5px] cursor-pointer text-left`}
+                          >
+                            {chat.title}
+                          </button>
+                          <div className="inline-block hidden-button"><ChatPointsMenu/></div>
+                        </div>
                       </div>
                     ))}
                   </div>
