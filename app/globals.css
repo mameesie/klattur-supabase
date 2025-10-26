@@ -8,6 +8,13 @@ body {
   color: #4c7d89;
   background-color: #f3dfd2;
 }
+.bg-black-opacity {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.bg-red-button{
+  background-color: rgba(255, 96, 96, 0.5);
+}
 
 .bg-yellow-button {
   background-color: #e5c300;

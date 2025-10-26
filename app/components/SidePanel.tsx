@@ -36,6 +36,7 @@ function SidePanel({ userName }: props) {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const currentChatId = useChatStore(
     (state: ChatStore) => state.chatObject.currentChatId
   );
@@ -209,6 +210,13 @@ function SidePanel({ userName }: props) {
     return groups;
   }
 
+  function deleteChat(chatId: string) {
+    const updatedChats = loadedChats.filter((chat) => chat.chat_uuid !== chatId);
+    setLoadedChats(updatedChats);
+  }
+
+
+
   return (
     <div className="flex min-h-full bg-pink-mid">
       {sidePanelOut ? (
@@ -274,7 +282,7 @@ function SidePanel({ userName }: props) {
                           >
                             {chat.title}
                           </button>
-                          <div className="inline-block hidden-button"><ChatPointsMenu/></div>
+                          <div className="inline-block hidden-button"><ChatPointsMenu setShowDeleteConfirm={setShowDeleteConfirm} /></div>
                         </div>
                       </div>
                     ))}
@@ -324,7 +332,33 @@ function SidePanel({ userName }: props) {
           userName={userName}
         />
       )}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black-opacity bg-opacity-20 flex items-center justify-center z-50">
+          <div className="bg-pink-light rounded-[20px] p-6 max-w-sm mx-4">
+            <p className="mb-4">Weet je zeker dat je dit gesprek wilt verwijderen?</p>
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 rounded-[10px] bg-pink-mid hover:bg-pink-dark cursor-pointer"
+              >
+                Annuleren
+              </button>
+              <button 
+                onClick={() => {
+                  // Add your delete logic here
+                  setShowDeleteConfirm(false);
+                  deleteChat();
+                }}
+                className="px-4 py-2 rounded-[10px] bg-pink-mid hover:bg-pink-dark cursor-pointer"
+              >
+                Verwijderen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+    
   );
 }
 
