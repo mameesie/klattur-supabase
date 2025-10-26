@@ -5,28 +5,32 @@
 
 body {
   font-family: var(--font-open-sans-regular);
-  color: #4C7D89;
-  background-color: #F3DFD2;
+  color: #4c7d89;
+  background-color: #f3dfd2;
 }
 
 .bg-yellow-button {
-  background-color: #E5C300;
+  background-color: #e5c300;
 }
 
 .bg-pink-light {
-  background-color: #F6EBE2;
+  background-color: #f6ebe2;
 }
 
 .bg-pink-mid {
-  background-color: #F3DFD2;
+  background-color: #f3dfd2;
 }
 
 .bg-pink-dark {
-  background-color: #F8D8C2;
+  background-color: #f8d8c2;
 }
 
 .hover\:bg-pink-mid:hover {
-  background-color: #F3DFD2;
+  background-color: #f3dfd2;
+}
+
+.hover\:bg-pink-dark:hover {
+  background-color: #f8d8c2;
 }
 
 
@@ -42,15 +46,15 @@ body {
   font-family: var(--font-open-sans-regular);
 }
 h2 {
-   width: 100%; 
-   
-   text-align: center; 
-   border-bottom: 1px solid #4C7D89;
-   line-height: 0.1em;
-   margin: 10px 0 20px; 
-} 
+  width: 100%;
 
-h2 span { 
-    background:#F8D8C2;
-    padding:0 10px; 
+  text-align: center;
+  border-bottom: 1px solid #4c7d89;
+  line-height: 0.1em;
+  margin: 10px 0 20px;
+}
+
+h2 span {
+  background: #f8d8c2;
+  padding: 0 10px;
 }

@@ -12,6 +12,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import NewChat from "@/public/svg/newChat";
 import NewChatBox from "./NewChatBox";
+import PulseLoader from "react-spinners/PulseLoader";
 
 interface ChatsType {
   chat_uuid: string;
@@ -30,6 +31,7 @@ function SidePanel({ userName }: props) {
   const [loadedChats, setLoadedChats] = useState<ChatsType[]>([]);
   const [hasMore, setHasMore] = useState(true); // Track if more chats exist
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
@@ -137,7 +139,7 @@ function SidePanel({ userName }: props) {
     if (loadedChats.length === 0 || isLoading || !hasMore) return;
 
     try {
-      setIsLoading(true);
+      setIsLoadingMore(true);
       const lastChat = loadedChats[loadedChats.length - 1];
 
       // Build URL with query parameters using URLSearchParams
@@ -161,7 +163,7 @@ function SidePanel({ userName }: props) {
     } catch (error) {
       console.error("Laden van chats is mislukt:", error);
     } finally {
-      setIsLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -253,38 +255,41 @@ function SidePanel({ userName }: props) {
                       {formatDate(chats[0].created_at)}
                     </div>
                     {chats.map((chat) => (
-                      <button
-                        key={chat.chat_uuid}
-                        onClick={() => {
-                          setSelectedChat(chat.chat_uuid);
-                          setCurrentChatObject(chat.chat_uuid, false);
-                          if (chat.chat_uuid !== currentChatId) {
-                            setIsLoadingMessages(true);
-                            
-                          }
-
-                        }}
-                        className={`${
-                          selectedChat === chat.chat_uuid ? "bg-pink-mid " : ""
-                        } max-w-[280px] overflow-x-hidden whitespace-nowrap ml-[10px] px-[10px] py-[5px] hover:bg-pink-mid cursor-pointer text-left rounded-[7px]`}
-                      >
-                        {chat.title}
-                      </button>
+                      <div key={`div-${chat.chat_uuid}`}>
+                        <button
+                          key={chat.chat_uuid}
+                          onClick={() => {
+                            setSelectedChat(chat.chat_uuid);
+                            setCurrentChatObject(chat.chat_uuid, false);
+                            if (chat.chat_uuid !== currentChatId) {
+                              setIsLoadingMessages(true);
+                        
+                            }
+                          }}
+                          className={`${
+                            selectedChat === chat.chat_uuid ? "bg-pink-mid " : ""
+                          } max-w-[280px] overflow-x-hidden whitespace-nowrap ml-[10px] px-[10px] py-[5px] hover:bg-pink-mid cursor-pointer text-left rounded-[7px]`}
+                        >
+                          {chat.title}
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )
               )
             )}
             {hasMore && !isLoading && loadedChats.length > 0 && (
-              <button
-                onClick={loadMoreChats}
-                className="p-2 text-sm text-gray-600 hover:bg-pink-mid"
-              >
-                Load more...
-              </button>
+              <div className="flex justify-begin">
+                <button
+                  onClick={loadMoreChats}
+                  className="p-2 hover:bg-pink-dark bg-pink-mid cursor-pointer rounded-[7px] ml-[10px] w-[100px]"
+                >{isLoadingMore ? <PulseLoader color="#ffffff" size={5} /> :
+                  <p>Laad meer</p>}
+                </button>
+              </div>
             )}
           </div>
-          <p className="absolute bottom-2 text-[12px] ml-[20px] mt-[6px]">&#169; The Work by Byron Katie</p>
+          <p className="absolute bottom-2 text-[12px] ml-[20px] mt-[6px] ">&#169; The Work by Byron Katie</p>
         </div>
       ) : (
         // VV show when sidePanel is closed

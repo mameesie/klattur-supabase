@@ -89,13 +89,14 @@ export async function POST(request: NextRequest) {
     // Ensure new user message has an ID
     const messageWithId: UIMessage = {
       ...message,
-      id: message.id || `user-${generateId()}`,
+      id: message.id || generateId(),
     };
 
     // Append the new user message
     const allMessages = [...dbMessages, messageWithId];
 
-    console.log("dt is de titel: ", title)
+    console.log("dit is de titel: ", title)
+    console.log("dit zijn alle messages: ",allMessages)
     // Create the UIMessageStream
     const stream = createUIMessageStream({
       execute: async ({ writer }) => {
@@ -111,7 +112,8 @@ export async function POST(request: NextRequest) {
           model: openai("gpt-4o-mini"),
           temperature: 0.3,
           maxRetries: 5,
-          system: `je bent een the work byron katie coach en vraagt de volgende vragen:`,
+          system: `je bent een the work byron katie coach en vraagt de volgende vragen:
+          1. is het waar. 2. kun je absoluut zeker weten dat het waar is. 3. wie zou je zijn zonder de gedachten. 4. draai de gedachten om. vraag één vraag tegelijk en werk ze stuk voor stuk af.`,
           messages: convertToModelMessages(allMessages),
           onFinish: async ({ text, finishReason, usage }) => {
             // Save messages after completion
