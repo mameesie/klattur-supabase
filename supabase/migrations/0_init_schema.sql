@@ -253,6 +253,25 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
+-- Delete chat
+CREATE OR REPLACE FUNCTION delete_chat(chat_uuid_arg UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_deleted BOOLEAN;
+BEGIN
+  DELETE FROM chats
+  WHERE chat_uuid = chat_uuid_arg
+  RETURNING TRUE INTO v_deleted;
+  
+  -- Return TRUE if a row was deleted, FALSE otherwise
+  RETURN COALESCE(v_deleted, FALSE);
+END;
+$$;
+
 -------------------end-functions-----------------------------------------------------------------------------------------
 
 
