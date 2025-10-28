@@ -15,6 +15,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import "dotenv/config";
 import { createClient } from "@/supabase/auth/server";
 import { changeEmail } from "@/app/actions/actions";
+import { is } from "drizzle-orm";
 
 type DBMessage = {
   id: string;
@@ -42,19 +43,19 @@ export async function POST(request: NextRequest) {
     }
 
     // unpack request json
-    const { messages, id }: { messages: UIMessage[]; id?: string | undefined } =
+    const { messages, id, isNewChat }: { messages: UIMessage[]; id?: string | undefined; isNewChat: boolean } =
       await request.json(); // validate body safeParse, see habits for alzheimer
-    const message = messages[messages.length - 1];
+      console.log("isNewChat? ", isNewChat);
+      const message = messages[messages.length - 1];
     console.log("id: ", id);
     let currentChatId = id
     console.log("id: ", currentChatId);
     // if there is no ChatId we need to create a new entry in the database
-    const { data: doesChatExist, error: doesChatExistError } = await supabase.rpc("does_chat_exist", { chat_id_arg: currentChatId });
-    
-    console.log("textpart of UIMessage: ", message.parts[0].type === 'text' ? message.parts[0].text : '');
-    if (doesChatExistError) { throw doesChatExistError }
+    //const { data: doesChatExist, error: doesChatExistError } = await supabase.rpc("does_chat_exist", { chat_id_arg: currentChatId });
+    // console.log("textpart of UIMessage: ", message.parts[0].type === 'text' ? message.parts[0].text : '');
+    // if (doesChatExistError) { throw doesChatExistError }
     let title: string = 'Untitled'; 
-    if (!doesChatExist) {
+    if (isNewChat) {
       console.log("chatId does not exist yet");
       const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
       const result = await generateText({
@@ -72,19 +73,19 @@ export async function POST(request: NextRequest) {
       currentChatId = chatIdFromDB;
     }
 
-    const { data: previousMessages, error: loadError } = await supabase.rpc(
-      "load_chat_messages",
-      { chat_uuid_arg: currentChatId }
-    );
-    if (loadError) throw loadError;
+    // const { data: previousMessages, error: loadError } = await supabase.rpc(
+    //   "load_chat_messages",
+    //   { chat_uuid_arg: currentChatId }
+    // );
+    // if (loadError) throw loadError;
 
-    const dbMessages: UIMessage[] = (previousMessages || []).map(
-      (msg: DBMessage) => ({
-        id: msg.id,
-        role: msg.role as "user" | "assistant",
-        parts: msg.content,
-      })
-    );
+    // const dbMessages: UIMessage[] = (previousMessages || []).map(
+    //   (msg: DBMessage) => ({
+    //     id: msg.id,
+    //     role: msg.role as "user" | "assistant",
+    //     parts: msg.content,
+    //   })
+    // );
 
     // Ensure new user message has an ID
     const messageWithId: UIMessage = {
@@ -93,7 +94,8 @@ export async function POST(request: NextRequest) {
     };
 
     // Append the new user message
-    const allMessages = [...dbMessages, messageWithId];
+    //const allMessages = [...dbMessages, messageWithId];
+    const allMessages = [...messages.slice(0, -1), messageWithId];
 
     console.log("dit is de titel: ", title)
     console.log("dit zijn alle messages: ",allMessages)
@@ -103,7 +105,7 @@ export async function POST(request: NextRequest) {
         // Send chatId as transient data
         writer.write({
           type: "data-doesChatExist", //chatId
-          data: { doesChatExist: doesChatExist, chatId: currentChatId, title: title },
+          data: { doesChatExist: !isNewChat, chatId: currentChatId, title: title },
           transient: true,
         });
 

@@ -17,7 +17,7 @@ interface props {
   showDeleteConfirm: boolean
   setLoadedChats: React.Dispatch<React.SetStateAction<ChatsType[]>>
   loadedChats: ChatsType[]
-  setSelectDeleteChat: React.Dispatch<React.SetStateAction<string | null>>
+  setSelectDeleteChat: React.Dispatch<React.SetStateAction<string | undefined>>
   chatId: string
 }
 

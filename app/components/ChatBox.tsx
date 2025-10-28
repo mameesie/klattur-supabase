@@ -11,16 +11,28 @@ import { ChatStore, useChatStore } from "@/store/useStore";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { getUser } from "@/supabase/auth/server";
+import GridLoader from "react-spinners/GridLoader";
 interface props {
   sendMessage: (message: { text: string }) => void;
   messages: UIMessage<unknown, UIDataTypes, UITools>[];
   isLoadingMessages: boolean;
-  userName: string
-  isStreaming: boolean
-  setIsStreaming: Dispatch<SetStateAction<boolean>>
+  userName: string;
+  isStreaming: boolean;
+  setIsStreaming: Dispatch<SetStateAction<boolean>>;
+  beforeStreaming: boolean;
+  setBeforeStreaming: Dispatch<SetStateAction<boolean>>;
 }
 
-const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName,isStreaming,setIsStreaming }: props) => {
+const ChatBox = ({
+  messages,
+  sendMessage,
+  beforeStreaming,
+  setBeforeStreaming,
+  isLoadingMessages,
+  userName,
+  isStreaming,
+  setIsStreaming,
+}: props) => {
   const [input, setInput] = useState("");
   const setCurrentChatObject = useChatStore(
     (state: ChatStore) => state.setChatObject
@@ -28,16 +40,13 @@ const ChatBox = ({ messages, sendMessage, isLoadingMessages, userName,isStreamin
   const currentChatId = useChatStore(
     (state: ChatStore) => state.chatObject.currentChatId
   );
-const isNewChat = useChatStore(
+  const isNewChat = useChatStore(
     (state: ChatStore) => state.chatObject.isNewChat
   );
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  
-
-  
   useEffect(() => {
     // used to not overflow textarea when there is more text
 
@@ -53,9 +62,8 @@ const isNewChat = useChatStore(
     }
   }, [input]);
 
-
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
@@ -78,6 +86,7 @@ const isNewChat = useChatStore(
     e.preventDefault();
     if (input && !isStreaming) {
       setIsStreaming(true);
+      setBeforeStreaming(true);
       sendMessage({ text: input });
       setInput("");
     }
@@ -89,90 +98,100 @@ const isNewChat = useChatStore(
         style={{ width: "calc(100% - 60px)" }}
         className=" max-w-[690px]  bg-pink-dark flex-1 pl-[10px] pr-[10px] pt-[10px] pb-[10px] "
       >
-        
         {isLoadingMessages ? (
           <div className="flex flex-col p-[10px]">
             <Skeleton
               count={6}
-              style={{ marginBottom: '20px' }}
-              borderRadius="20px"  // Match your message bubbles
-
+              style={{ marginBottom: "20px" }}
+              borderRadius="20px" // Match your message bubbles
               height={70}
               baseColor="#F6EBE2" // Light pink base
               highlightColor="#ffffff" // Even lighter pink for shimmer
             />
           </div>
-        ) : ( 
+        ) : (
           <>
-          <div className="flex justify-start">
-            <div
-              key="id-1-1"
-              className=" rounded-[20px] inline-flex overflow-hidden p-[15px] m-[10px] bg-pink-light items-center"
-            >
+            <div className="flex justify-start">
               <div
-                className={`h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
-              >
-                <ChatAssistant/>
-              </div>
-              <div className="ml-[15px]">
-                Hi {userName}, Wat is er aan de hand, waar zit je mee?
-              </div>
-            </div>
-          </div>
-        
-        
-          {messages.map((message) => (
-            <div
-              key={`${message.id}-1`}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                key={message.id}
+                key="id-1-1"
                 className=" rounded-[20px] inline-flex overflow-hidden p-[15px] m-[10px] bg-pink-light items-center"
               >
-                {/* whitespace-pre-wrap */}
-                {/*message.role === "user" ? "User: " : "AI: "*/}
-                {message.role === "assistant" ? (
-                  <div
-                    className={` h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
-                  >
-                    <ChatAssistant/>
-                  </div>
-                ) : (
-                  <div></div>
-                )}
-                {message.parts.map((part, i) => {
-                  switch (part.type) {
-                    case "text":
-                      return (
-                        <div
-                          className={`${
-                            message.role === "user" ? "mr-[15px]" : "ml-[15px]"
-                          }`}
-                          key={`${message.id}-${i}`}
-                        >
-                          {part.text}
-                        </div>
-                      );
-                  }
-                })}
-                <div ref={messagesEndRef}></div>
-                {message.role === "user" ? (
-                  <div
-                    className={` h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
-                  >
-                    <ChatUser/>
-                  </div>
-                ) : (
-                  <div></div>
-                )}
+                <div
+                  className={`h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
+                >
+                  <ChatAssistant />
+                </div>
+                <div className="ml-[15px]">
+                  Hi {userName}, Wat is er aan de hand, waar zit je mee?
+                </div>
               </div>
             </div>
-          ))}
-        </>
-      )}
+
+            {messages.map((message) => (
+              <div
+                key={`${message.id}-1`}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  key={message.id}
+                  className=" rounded-[20px] inline-flex overflow-hidden p-[15px] m-[10px] bg-pink-light items-center"
+                >
+                  {/* whitespace-pre-wrap */}
+                  {/*message.role === "user" ? "User: " : "AI: "*/}
+                  {message.role === "assistant" ? (
+                    <div
+                      className={` h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
+                    >
+                      <ChatAssistant />
+                    </div>
+                  ) : (
+                    <div></div>
+                  )}
+                  {message.parts.map((part, i) => {
+                    switch (part.type) {
+                      case "text":
+                        return (
+                          <div
+                            className={`${
+                              message.role === "user"
+                                ? "mr-[15px]"
+                                : "ml-[15px]"
+                            }`}
+                            key={`${message.id}-${i}`}
+                          >
+                            {part.text}
+                          </div>
+                        );
+                    }
+                  })}
+
+                  <div ref={messagesEndRef}></div>
+                  {message.role === "user" ? (
+                    <div
+                      className={` h-[40px] w-[40px] rounded-[10px] flex-shrink-0`}
+                    >
+                      <ChatUser />
+                    </div>
+                  ) : (
+                    <div></div>
+                  )}
+                </div>
+              </div>
+            ))}
+            {beforeStreaming && (
+              <div className="flex">
+                <div className=" rounded-[20px] inline-flex overflow-hidden p-[15px] m-[10px] bg-pink-light items-center">
+                  <div className="h-[40px] w-[40px] rounded-[10px] flex-shrink-0 flex justify-center items-center">
+                    {/* <GridLoader color="#B8A296" size={9}  /> */}
+                    <ChatAssistant />
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
       <div className="sticky bottom-0 flex justify-center items-center w-full ">
         <div
@@ -194,7 +213,7 @@ const isNewChat = useChatStore(
               rows={1}
             />
             <button
-              className="bg-yellow-button min-w-[40px] h-[40px] rounded-[10px] flex justify-center items-center"
+              className="bg-yellow-button min-w-[40px] h-[40px] rounded-[10px] flex justify-center items-center cursor-pointer"
               type="submit"
             >
               {isStreaming ? (
@@ -215,7 +234,7 @@ const isNewChat = useChatStore(
             console.log("current chat object", currentChatId)
             }}>setcurrentchat object</button> */}
         </div>
-      </div> 
+      </div>
       <style jsx>{`
         @keyframes grow {
           0%,

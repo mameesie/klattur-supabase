@@ -131,7 +131,7 @@ function LoginForm() {
           onSubmit={form.handleSubmit(handleSubmit)}
           noValidate
           ref={formRef}
-          className="flex flex-col gap-2"
+          className="flex flex-col gap-2 "
         >
           
           <input
@@ -151,7 +151,7 @@ function LoginForm() {
             type="email"
             disabled={isPending}
           />
-          {form.formState.errors.email && form.formState.errors.email.message}
+          {form.formState.errors.email && <p className="w-[300px] text-red-900">{form.formState.errors.email.message}</p>}
           <div className="flex justify-start">
             wachtwoord:
           </div>
@@ -164,7 +164,7 @@ function LoginForm() {
             disabled={isPending}
           />
           {form.formState.errors.password &&
-            form.formState.errors.password.message}
+            <p className="w-[300px] text-red-900">{form.formState.errors.password.message}</p>}
           <div
             //className={`cf-turnstile ${interactive ? '.active' : ''}`}
             className="cf-turnstile rounded-xl overflow-hidden h-16 mt-[10px]"
@@ -174,7 +174,7 @@ function LoginForm() {
             // data-before-interactive-callback="handleBeforeInteractive"
             // data-callback="handleBeforeInteractive"
           ></div>
-          {error && <div>{error} </div>}
+          {error && <div className="w-[300px] text-red-900">{error} </div>}
           <button
             className="bg-pink-light w-[300px] h-[40px] rounded-[10px] mt-[10px] mb-[25px] cursor-pointer"
             type="submit"

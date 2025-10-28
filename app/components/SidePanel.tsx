@@ -30,12 +30,13 @@ interface props {
 function SidePanel({ userName }: props) {
   const [sidePanelOut, setSidePanelOut] = useState(false);
   const [loadedChats, setLoadedChats] = useState<ChatsType[]>([]);
-  const [selectDeleteChat, setSelectDeleteChat] = useState<string | null>()
+  const [selectDeleteChat, setSelectDeleteChat] = useState<string | undefined>();
   const [hasMore, setHasMore] = useState(true); // Track if more chats exist
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
-  const [isStreaming, setIsStreaming] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [beforeStreaming, setBeforeStreaming] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const currentChatId = useChatStore(
@@ -51,10 +52,27 @@ function SidePanel({ userName }: props) {
 
   const { messages, sendMessage, setMessages } = useChat({
     id: currentChatId?.toString(), // use the provided chat ID/ load initial messages
+
     transport: new DefaultChatTransport({
       api: "/api/chat",
+      prepareSendMessagesRequest: ({ id, messages, trigger, messageId }) => {
+        console.log("🔥 prepareSendMessagesRequest CALLED");
+        const isnewchat = useChatStore.getState().chatObject.isNewChat;
+        console.log("isNewChat: ", isnewchat);
+
+        return {
+          body: {
+            id,
+            messages,
+            trigger,
+            messageId,
+            isNewChat: isnewchat,
+          },
+        };
+      },
     }),
     onData: (dataPart) => {
+      setBeforeStreaming(false);
       // Capture the chatId from transient data
       if (dataPart.type === "data-doesChatExist") {
         const doesChatExist = (dataPart.data as { doesChatExist: boolean })
@@ -73,6 +91,7 @@ function SidePanel({ userName }: props) {
           };
           console.log("newchat: ", newChat);
           setLoadedChats((prevChats) => [newChat, ...prevChats]);
+          setCurrentChatObject(chatId, false)
         }
         // if (newChatId && !currentChatId) {
         //   setCurrentChatObject(newChatId);
@@ -211,11 +230,7 @@ function SidePanel({ userName }: props) {
     return groups;
   }
 
-  function deleteChat(chatId: string) {
-    
-  }
-
-
+  function deleteChat(chatId: string) {}
 
   return (
     <div className="flex min-h-full bg-pink-mid">
@@ -265,7 +280,10 @@ function SidePanel({ userName }: props) {
                     </div>
                     {chats.map((chat) => (
                       <div key={`i-${chat.chat_uuid}`} className="flex">
-                        <div className="ml-[10px] rounded-[7px] inline-block px-[10px] trigger-button hover:bg-pink-mid" key={`div-${chat.chat_uuid}`}>
+                        <div
+                          className="ml-[10px] rounded-[7px] inline-block px-[10px] trigger-button hover:bg-pink-mid"
+                          key={`div-${chat.chat_uuid}`}
+                        >
                           <button
                             key={chat.chat_uuid}
                             onClick={() => {
@@ -273,16 +291,31 @@ function SidePanel({ userName }: props) {
                               setCurrentChatObject(chat.chat_uuid, false);
                               if (chat.chat_uuid !== currentChatId) {
                                 setIsLoadingMessages(true);
-                        
                               }
                             }}
                             className={`${
-                              selectedChat === chat.chat_uuid ? "bg-pink-mid px-[10px] ml-[-10px] rounded-[7px]" : ""
+                              selectedChat === chat.chat_uuid
+                                ? "bg-pink-mid px-[10px] ml-[-10px] rounded-[7px]"
+                                : ""
                             } max-w-[280px] overflow-x-hidden whitespace-nowrap  pr-[10px] py-[5px] cursor-pointer text-left`}
                           >
                             {chat.title}
                           </button>
-                          <div className={`inline-block ${selectDeleteChat !== chat.chat_uuid && "hidden-button"}`}><ChatPointsMenu chatId={chat.chat_uuid} loadedChats={loadedChats} setLoadedChats={setLoadedChats} setSelectDeleteChat={setSelectDeleteChat} showDeleteConfirm={showDeleteConfirm} setShowDeleteConfirm={setShowDeleteConfirm} /></div>
+                          <div
+                            className={`inline-block ${
+                              selectDeleteChat !== chat.chat_uuid &&
+                              "hidden-button"
+                            }`}
+                          >
+                            <ChatPointsMenu
+                              chatId={chat.chat_uuid}
+                              loadedChats={loadedChats}
+                              setLoadedChats={setLoadedChats}
+                              setSelectDeleteChat={setSelectDeleteChat}
+                              showDeleteConfirm={showDeleteConfirm}
+                              setShowDeleteConfirm={setShowDeleteConfirm}
+                            />
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -295,13 +328,19 @@ function SidePanel({ userName }: props) {
                 <button
                   onClick={loadMoreChats}
                   className="p-2 hover:bg-pink-dark bg-pink-mid cursor-pointer rounded-[7px] ml-[10px] w-[100px]"
-                >{isLoadingMore ? <PulseLoader color="#ffffff" size={5} /> :
-                  <p>Laad meer</p>}
+                >
+                  {isLoadingMore ? (
+                    <PulseLoader color="#ffffff" size={5} />
+                  ) : (
+                    <p>Laad meer</p>
+                  )}
                 </button>
               </div>
             )}
           </div>
-          <p className="absolute bottom-2 text-[12px] ml-[20px] mt-[6px] ">&#169; The Work by Byron Katie</p>
+          <p className="absolute bottom-2 text-[12px] ml-[20px] mt-[6px] ">
+            &#169; The Work by Byron Katie
+          </p>
         </div>
       ) : (
         // VV show when sidePanel is closed
@@ -321,9 +360,18 @@ function SidePanel({ userName }: props) {
       ></div>
 
       {isNewChat ? (
-        <NewChatBox  userName={userName} sendMessage={sendMessage} setIsStreaming={setIsStreaming} isStreaming={isStreaming}/>
+        <NewChatBox
+          userName={userName}
+          sendMessage={sendMessage}
+          setIsStreaming={setIsStreaming}
+          isStreaming={isStreaming}
+          beforeStreaming={beforeStreaming}
+          setBeforeStreaming={setBeforeStreaming}
+        />
       ) : (
         <ChatBox
+          beforeStreaming={beforeStreaming}
+          setBeforeStreaming={setBeforeStreaming}
           isStreaming={isStreaming}
           setIsStreaming={setIsStreaming}
           isLoadingMessages={isLoadingMessages}
@@ -332,9 +380,7 @@ function SidePanel({ userName }: props) {
           userName={userName}
         />
       )}
-      
     </div>
-    
   );
 }
 
