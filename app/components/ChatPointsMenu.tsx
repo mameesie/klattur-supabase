@@ -17,22 +17,23 @@ interface props {
   showDeleteConfirm: boolean
   setLoadedChats: React.Dispatch<React.SetStateAction<ChatsType[]>>
   loadedChats: ChatsType[]
+  setSelectDeleteChat: React.Dispatch<React.SetStateAction<string | null>>
   chatId: string
 }
 
-function ChatPointsMenu({ setShowDeleteConfirm, setLoadedChats, loadedChats, showDeleteConfirm, chatId }: props) {
+function ChatPointsMenu({ setShowDeleteConfirm, setLoadedChats, setSelectDeleteChat, showDeleteConfirm, chatId }: props) {
   
   const deleteChat = async () => {
     // optimistic delete chat from UI
     setLoadedChats((prevChats) => prevChats.filter((chat) => chat.chat_uuid !== chatId));
     try {
-      const response = await fetch("/api/getChats", {
+      const response = await fetch("/api/delete-chat", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ chatId }),
-      });
+      }); 
 
       if (!response.ok) {
         const responseData = await response.json();
@@ -53,7 +54,10 @@ return (
         <DropdownMenu.Portal>
           <DropdownMenu.Content className="z-50 min-w-[132px] min-h-[52px] rounded-[10px] bg-white p-[5px]">
             <DropdownMenu.Item className='mt-[8px]'>
-              <button onClick={() => setShowDeleteConfirm(true)} className='flex ml-[5px] cursor-pointer text-red-900'>
+              <button onClick={() => {
+                setSelectDeleteChat(chatId)
+                setShowDeleteConfirm(true)
+                }} className='flex ml-[5px] cursor-pointer text-red-900'>
                 <TrashCan className='w-[18px] h-[18px] mt-[2px] mr-[10px] ml-[4px]'/>
                 <p>Verwijder</p>
               </button>
@@ -68,7 +72,11 @@ return (
             <p className="mb-4">Weet je zeker dat je dit gesprek wilt verwijderen?</p>
             <div className="flex gap-3 justify-end">
               <button 
-                onClick={() => setShowDeleteConfirm(false)}
+                onClick={() => {
+                  setSelectDeleteChat(null)
+                  setShowDeleteConfirm(false)
+
+                }}
                 className="px-4 py-2 rounded-[10px] bg-pink-mid hover:bg-pink-dark cursor-pointer"
               >
                 Annuleren
@@ -76,6 +84,7 @@ return (
               <button 
                 onClick={() => {
                   // Add your delete logic here
+                  setSelectDeleteChat(null)
                   setShowDeleteConfirm(false);
                   deleteChat();
                 }}

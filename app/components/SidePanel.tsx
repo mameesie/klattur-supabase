@@ -30,6 +30,7 @@ interface props {
 function SidePanel({ userName }: props) {
   const [sidePanelOut, setSidePanelOut] = useState(false);
   const [loadedChats, setLoadedChats] = useState<ChatsType[]>([]);
+  const [selectDeleteChat, setSelectDeleteChat] = useState<string | null>()
   const [hasMore, setHasMore] = useState(true); // Track if more chats exist
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -281,7 +282,7 @@ function SidePanel({ userName }: props) {
                           >
                             {chat.title}
                           </button>
-                          <div className="inline-block hidden-button"><ChatPointsMenu chatId={chat.chat_uuid} loadedChats={loadedChats} setLoadedChats={setLoadedChats} showDeleteConfirm={showDeleteConfirm} setShowDeleteConfirm={setShowDeleteConfirm} /></div>
+                          <div className={`inline-block ${selectDeleteChat !== chat.chat_uuid && "hidden-button"}`}><ChatPointsMenu chatId={chat.chat_uuid} loadedChats={loadedChats} setLoadedChats={setLoadedChats} setSelectDeleteChat={setSelectDeleteChat} showDeleteConfirm={showDeleteConfirm} setShowDeleteConfirm={setShowDeleteConfirm} /></div>
                         </div>
                       </div>
                     ))}
