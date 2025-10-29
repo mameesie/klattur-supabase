@@ -47,9 +47,21 @@ function ChatPointsMenu({ setShowDeleteConfirm, setLoadedChats, setSelectDeleteC
 
 return (
     <>
-      <DropdownMenu.Root>
+      <DropdownMenu.Root 
+      onOpenChange={(open) => {
+    if (!open) {
+      // Menu was closed (including by clicking outside)
+      // Your function here
+        setSelectDeleteChat(undefined)
+      
+    }
+  }}
+      >
+
         <DropdownMenu.Trigger asChild>
-          <div className='w-[20px] cursor-pointer mb-[2px]'><Points/></div>
+          <button onClick={() => {
+                setSelectDeleteChat(chatId)  }}
+                className='w-[20px] cursor-pointer mb-[2px]'><Points/></button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content className="z-50 min-w-[132px] min-h-[52px] rounded-[10px] bg-white p-[5px]">
@@ -73,7 +85,7 @@ return (
             <div className="flex gap-3 justify-end">
               <button 
                 onClick={() => {
-                  setSelectDeleteChat(null)
+                  setSelectDeleteChat(undefined)
                   setShowDeleteConfirm(false)
 
                 }}
@@ -84,7 +96,7 @@ return (
               <button 
                 onClick={() => {
                   // Add your delete logic here
-                  setSelectDeleteChat(null)
+                  setSelectDeleteChat(undefined)
                   setShowDeleteConfirm(false);
                   deleteChat();
                 }}

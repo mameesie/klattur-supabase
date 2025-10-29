@@ -281,7 +281,7 @@ function SidePanel({ userName }: props) {
                     {chats.map((chat) => (
                       <div key={`i-${chat.chat_uuid}`} className="flex">
                         <div
-                          className="ml-[10px] rounded-[7px] inline-block px-[10px] trigger-button hover:bg-pink-mid"
+                          className={`ml-[10px] rounded-[7px] inline-block px-[10px] trigger-button hover:bg-pink-mid ${selectDeleteChat === chat.chat_uuid && "bg-pink-mid"}`}
                           key={`div-${chat.chat_uuid}`}
                         >
                           <button
@@ -294,7 +294,7 @@ function SidePanel({ userName }: props) {
                               }
                             }}
                             className={`${
-                              selectedChat === chat.chat_uuid
+                              selectedChat === chat.chat_uuid 
                                 ? "bg-pink-mid px-[10px] ml-[-10px] rounded-[7px]"
                                 : ""
                             } max-w-[280px] overflow-x-hidden whitespace-nowrap  pr-[10px] py-[5px] cursor-pointer text-left`}
@@ -303,9 +303,10 @@ function SidePanel({ userName }: props) {
                           </button>
                           <div
                             className={`inline-block ${
-                              selectDeleteChat !== chat.chat_uuid &&
-                              "hidden-button"
-                            }`}
+                              selectDeleteChat !== chat.chat_uuid && 
+                              "hidden-button" 
+                            } 
+                              `}
                           >
                             <ChatPointsMenu
                               chatId={chat.chat_uuid}
