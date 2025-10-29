@@ -43,32 +43,42 @@ export async function POST(request: NextRequest) {
     }
 
     // unpack request json
-    const { messages, id, isNewChat }: { messages: UIMessage[]; id?: string | undefined; isNewChat: boolean } =
+    const {
+      messages,
+      id,
+      isNewChat,
+    }: { messages: UIMessage[]; id?: string | undefined; isNewChat: boolean } =
       await request.json(); // validate body safeParse, see habits for alzheimer
-      console.log("isNewChat? ", isNewChat);
-      const message = messages[messages.length - 1];
+    console.log("isNewChat? ", isNewChat);
+    const message = messages[messages.length - 1];
     console.log("id: ", id);
-    let currentChatId = id
+    let currentChatId = id;
     console.log("id: ", currentChatId);
     // if there is no ChatId we need to create a new entry in the database
     //const { data: doesChatExist, error: doesChatExistError } = await supabase.rpc("does_chat_exist", { chat_id_arg: currentChatId });
     // console.log("textpart of UIMessage: ", message.parts[0].type === 'text' ? message.parts[0].text : '');
     // if (doesChatExistError) { throw doesChatExistError }
-    let title: string = 'Untitled'; 
+    let title: string = "Untitled";
     if (isNewChat) {
       console.log("chatId does not exist yet");
       const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
       const result = await generateText({
-          model: openai("gpt-4o-mini"),
-          temperature: 0.3,
-          maxRetries: 5,
-          system: `vat dit stukje tekst samen en maak daar een titel van. Dit mag maximaal 30 characters bevatten. Antwoord alleen de titel zonder andere informatie.`,
-          prompt: message.parts[0].type === 'text' ? message.parts[0].text : ''})
+        model: openai("gpt-4o-mini"),
+        temperature: 0.3,
+        maxRetries: 5,
+        system: `vat dit stukje tekst samen en maak daar een titel van. Dit mag maximaal 30 characters bevatten. Antwoord alleen de titel zonder andere informatie.`,
+        prompt: message.parts[0].type === "text" ? message.parts[0].text : "",
+      });
 
-      console.log("titel:", result.content)
-      title = result.content[0].type === 'text' ? result.content[0].text : 'Untitled';
-          const { data: chatIdFromDB, error: chatIdFromDBError } =
-        await supabase.rpc("create_chat", { user_id_arg: user.id, chat_uuid_arg: currentChatId, title_arg: title });
+      console.log("titel:", result.content);
+      title =
+        result.content[0].type === "text" ? result.content[0].text : "Untitled";
+      const { data: chatIdFromDB, error: chatIdFromDBError } =
+        await supabase.rpc("create_chat", {
+          user_id_arg: user.id,
+          chat_uuid_arg: currentChatId,
+          title_arg: title,
+        });
       if (chatIdFromDBError) throw chatIdFromDBError;
       currentChatId = chatIdFromDB;
     }
@@ -97,15 +107,19 @@ export async function POST(request: NextRequest) {
     //const allMessages = [...dbMessages, messageWithId];
     const allMessages = [...messages.slice(0, -1), messageWithId];
 
-    console.log("dit is de titel: ", title)
-    console.log("dit zijn alle messages: ",allMessages)
+    console.log("dit is de titel: ", title);
+    console.log("dit zijn alle messages: ", allMessages);
     // Create the UIMessageStream
     const stream = createUIMessageStream({
       execute: async ({ writer }) => {
         // Send chatId as transient data
         writer.write({
           type: "data-doesChatExist", //chatId
-          data: { doesChatExist: !isNewChat, chatId: currentChatId, title: title },
+          data: {
+            doesChatExist: !isNewChat,
+            chatId: currentChatId,
+            title: title,
+          },
           transient: true,
         });
 
@@ -118,6 +132,9 @@ export async function POST(request: NextRequest) {
           1. is het waar. 2. kun je absoluut zeker weten dat het waar is. 3. wie zou je zijn zonder de gedachten. 4. draai de gedachten om. vraag één vraag tegelijk en werk ze stuk voor stuk af.`,
           messages: convertToModelMessages(allMessages),
           onFinish: async ({ text, finishReason, usage }) => {
+            console.log("Token usage:", usage);
+            console.log("Total tokens:", usage.totalTokens);
+
             // Save messages after completion
             // Note: We need to construct the messages manually here
             const userMessage = messageWithId;

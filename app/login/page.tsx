@@ -110,17 +110,18 @@ function LoginForm() {
   return (
     <div className="flex flex-col items-center bg-pink-mid">
       <div className="w-[350px] rounded-[20px] flex flex-col items-center bg-pink-dark mt-[70px]">
-        <h1 className="font-semibold mt-[10px] ">Welkom terug</h1>
+        <h1 className="font-semibold mt-[60px] ">Welkom terug</h1>
         <p>Log in met je Google account</p>
         <button
           onClick={handleGoogleLogin}
-          className=" bg-pink-light w-[300px] h-[40px] rounded-[10px] mt-[20px] cursor-pointer "
+          className=" bg-pink-light w-[300px] h-[55px] rounded-[10px] mt-[30px] cursor-pointer font-semibold "
           type="submit"
         >
-          GOOGLE
+          Google
         </button>
-        <div className="w-[300px] mt-[30px]">
-          <h2><span>Of login met je email</span></h2>
+        <div className="w-[300px] mt-[30px] text-center font-semibold">
+          Of login met je email
+          {/* <h2><span>Of login met je email</span></h2> */}
         </div>
         <Script
           src="https://challenges.cloudflare.com/turnstile/v0/api.js"
@@ -131,7 +132,7 @@ function LoginForm() {
           onSubmit={form.handleSubmit(handleSubmit)}
           noValidate
           ref={formRef}
-          className="flex flex-col gap-2 "
+          className="flex flex-col "
         >
           
           <input
@@ -140,24 +141,24 @@ function LoginForm() {
             type="text"
             className="h-0 overflow-hidden"
           />
-          <div className="flex justify-start">
-            email:
+          <div className="flex justify-start mt-[10px]">
+            Email
           </div>
           <input
             {...form.register("email")}
-            className="w-[300px] bg-white rounded-[10px] h-[40px] p-[10px]"
+            className="w-[300px] bg-white rounded-[10px] h-[55px] p-[10px]"
             id="email"
             name="email"
             type="email"
             disabled={isPending}
           />
           {form.formState.errors.email && <p className="w-[300px] text-red-900">{form.formState.errors.email.message}</p>}
-          <div className="flex justify-start">
-            wachtwoord:
+          <div className="flex justify-start mt-[10px]">
+            Wachtwoord
           </div>
           <input
             {...form.register("password")}
-            className="w-[300px] bg-white rounded-[10px] h-[40px p-[10px]"
+            className="w-[300px] bg-white rounded-[10px] h-[55px] p-[10px]"
             id="password"
             name="password"
             type="password"
@@ -167,7 +168,7 @@ function LoginForm() {
             <p className="w-[300px] text-red-900">{form.formState.errors.password.message}</p>}
           <div
             //className={`cf-turnstile ${interactive ? '.active' : ''}`}
-            className="cf-turnstile rounded-xl overflow-hidden h-16 mt-[10px]"
+            className="cf-turnstile rounded-xl overflow-hidden h-16 mt-[30px]"
             data-sitekey="0x4AAAAAAB5p_8LYVdoKaNAj" // using .env gives an error in browser console
             data-appearance="execute"
             ref={turnstileRef}
@@ -176,13 +177,13 @@ function LoginForm() {
           ></div>
           {error && <div className="w-[300px] text-red-900">{error} </div>}
           <button
-            className="bg-pink-light w-[300px] h-[40px] rounded-[10px] mt-[10px] mb-[25px] cursor-pointer"
+            className="bg-pink-light w-[300px] h-[55px] rounded-[10px] mt-[30px] mb-[25px] cursor-pointer"
             type="submit"
           >
             {isPending ? (
               <div className="h-[10px] w-[10px] bg-black"></div>
             ) : (
-              "Login"
+              <p className="font-semibold">Login</p>
             )}
           </button>
         </form>
