@@ -92,14 +92,30 @@ function NewChatBox({
                 className="bg-yellow-button min-w-[40px] h-[40px] rounded-[10px] flex justify-center items-center cursor-pointer"
                 type="submit"
               >
-                {
-                  beforeStreaming ? <BounceLoader color="#ffffff" size={20} /> : <Arrow className="h-[16px] w-[16px]" />
-                }
+                {isStreaming ? (
+                <div className="w-[15px] h-[15px] bg-white rounded-[50px] animate-grow" />
+              ) : (
+                <Arrow className="h-[16px] w-[16px]" />
+              )}
               </button>
             </form>
           </div>
         </div>
       </div>
+      <style jsx>{`
+        @keyframes grow {
+          0%,
+          100% {
+            transform: scale(0.7);
+          }
+          50% {
+            transform: scale(1.5);
+          }
+        }
+        .animate-grow {
+          animation: grow 1.5s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }

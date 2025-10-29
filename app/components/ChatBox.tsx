@@ -217,7 +217,7 @@ const ChatBox = ({
               type="submit"
             >
               {isStreaming ? (
-                <div className="w-[15px] h-[15px] bg-white rounded-[5px] animate-grow" />
+                <div className="w-[15px] h-[15px] bg-white rounded-[50px] animate-grow" />
               ) : (
                 <Arrow className="h-[16px] w-[16px]" />
               )}
@@ -239,10 +239,10 @@ const ChatBox = ({
         @keyframes grow {
           0%,
           100% {
-            transform: scale(1);
+            transform: scale(0.7);
           }
           50% {
-            transform: scale(1.2);
+            transform: scale(1.5);
           }
         }
         .animate-grow {
