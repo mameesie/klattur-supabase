@@ -11,6 +11,7 @@ import Script from "next/script";
 import { createClient } from "@/supabase/auth/client";
 import { loginWithGoogle } from "../actions/actions";
 import "@/app/globals.css";
+import PulseLoader from "react-spinners/PulseLoader";
 type FormData = z.infer<typeof userSchema>;
 
 function LoginForm() {
@@ -135,12 +136,7 @@ function LoginForm() {
           className="flex flex-col "
         >
           
-          <input
-            {...form.register("name")}
-            name="name"
-            type="text"
-            className="h-0 overflow-hidden"
-          />
+
           <div className="flex justify-start mt-[10px]">
             Email
           </div>
@@ -180,8 +176,8 @@ function LoginForm() {
             className="bg-pink-light w-[300px] h-[55px] rounded-[10px] mt-[30px] mb-[25px] cursor-pointer"
             type="submit"
           >
-            {isPending ? (
-              <div className="h-[10px] w-[10px] bg-black"></div>
+            {mutation.isPending ? (
+              <PulseLoader color="#4c7d89" size={10} />
             ) : (
               <p className="font-semibold">Login</p>
             )}

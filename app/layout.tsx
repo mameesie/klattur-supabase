@@ -17,6 +17,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const no_name_reg = localFont({
+  src: "../public/fonts/no_name_37_Regular.otf",
+  variable: "--font-no-name-regular",
+})
+
+const open_sans_semibold = localFont({
+  src: "../public/fonts/OpenSans-Semibold.ttf",
+  variable: "--font-open-sans-semibold",
+})
+
 const open_sans_regular = localFont({
   src: "../public/fonts/OpenSans-Regular.ttf",
   variable: "--font-open-sans-regular",
@@ -36,7 +46,7 @@ export default function RootLayout({
     <html lang="en">
       <body
       
-        className={`${open_sans_regular.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${open_sans_regular.variable} ${no_name_reg.variable} ${open_sans_semibold.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
         

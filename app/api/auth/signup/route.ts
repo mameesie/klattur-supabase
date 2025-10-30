@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       );
     }
     // honeypot for bots to fill in
-    if (validation.data.name !== "") {
+    if (validation.data.name !== "" && validation.data.name !== undefined) {
       console.log("name: ", validation.data.name);
       return NextResponse.json(
         {

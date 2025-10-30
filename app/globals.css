@@ -8,12 +8,21 @@ body {
   color: #4c7d89;
   background-color: #f3dfd2;
 }
+
+.font-no-name-regular {
+  font-family: var(--font-no-name-regular);
+}
+
+.font-open-sans-semibold {
+  font-family: var(--font-open-sans-semibold);
+}
+
 .bg-black-opacity {
   background-color: rgba(0, 0, 0, 0.5);
 }
 
 .bg-red-button{
-  background-color: rgba(255, 96, 96, 0.5);
+  background-color: rgba(255, 96, 96, 0.5)÷
 }
 
 .bg-yellow-button {
@@ -76,4 +85,8 @@ h2 span {
 .trigger-button:hover .hidden-button {
   opacity: 1;
   pointer-events: auto;
+}
+
+@theme {
+  --breakpoint-xs: 460px;
 }

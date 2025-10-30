@@ -3,6 +3,7 @@ import LogOutButton from "./LogOutButton";
 import DropDownMenu from "./DropDownMenu";
 
 import KlatturLogo from "@/public/svg//KlatturLogo";
+import Link from "next/link";
 async function Header() {
   const user = await getUser();
 
@@ -10,7 +11,7 @@ async function Header() {
   return (
     <div className="h-[100px] bg-white sticky flex justify-between items-center top-0 flex-shrink-0 z-20">
       
-        <a className="w-[100px] ml-[10px]" href="/chat"><KlatturLogo/></a>
+        <Link className="w-[100px] ml-[10px]" href="/"><KlatturLogo/></Link>
 
         {user ? (
           <DropDownMenu

@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import Script from "next/script";
 import { createClient } from "@/supabase/auth/client";
+import { loginWithGoogle } from "../actions/actions";
+import PulseLoader from "react-spinners/PulseLoader";
 
 type FormData = z.infer<typeof userSchemaSignUp>;
 
@@ -143,12 +145,7 @@ function LoginForm() {
             ref={formRef}
             className="flex flex-col"
           >
-            <input
-              {...form.register("name")}
-              name="name"
-              type="text"
-              className="h-5 overflow-hidden"
-            />
+           
             <div className="flex justify-start mt-[10px]">
             Voornaam
           </div>
@@ -198,7 +195,7 @@ function LoginForm() {
               disabled={mutation.isPending}
             >
               {mutation.isPending ? (
-                <div className="h-[10px] w-[10px] bg-black"></div>
+                <PulseLoader color="#4c7d89" size={10} />
               ) : (
                 <p className="font-semibold">Aanmelden</p>
               )}
